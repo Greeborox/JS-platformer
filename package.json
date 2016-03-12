@@ -1,0 +1,12 @@
+{
+  "name": "platformPrototype",
+  "version": "1.0.0",
+  "description": "first platformer prototype",
+  "main": "main.js",
+  "scripts": {
+    "build": "browserify main.js -o bundle.js",
+    "watch": "watchify main.js -o bundle.js -v"
+  },
+  "author": "js.n00b",
+  "license": "ISC"
+}

@@ -1,5 +1,6 @@
 var c = require('./Config/canvas');
 var keys = require('./Config/keys');
+var m = require('./Config/mouse');
 var loadingState = require('./States/loadingState');
 var menuState = require('./States/menuState');
 var gameState = require('./States/gameState');
@@ -33,6 +34,7 @@ function gameLoop(){
 module.exports = {
   init: function() {
     keys.init();
+    m.init();
     gameLoop();
   }
 }

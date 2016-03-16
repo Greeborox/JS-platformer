@@ -11,7 +11,7 @@ var arrow;
 
 function loadAssets(){
   arrow = new Image();
-  arrow.src = "GFX/arrow.png";
+  arrow.src = "./GFX/arrow.png";
   arrow.addEventListener("load",function(){assets.addAsset()},false)
   assets.newAsset("arrow",arrow);
 }

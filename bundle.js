@@ -48,8 +48,13 @@ module.exports = {
 var entity = require('./entity');
 var keys = require('../Config/keys');
 var c = require('../Config/canvas');
+var assets = require('../Config/assets');
+var helpers = require('../Config/helpers');
+var m = require('../Config/mouse');
 
 var upPressed = false;
+var spacePressed = false;
+var mClicked = false;
 
 player = entity.newEntity();
 player.color = "blue";
@@ -58,32 +63,77 @@ player.kneeling = false;
 player.onGround = false;
 player.vector = {x:0,y:0};
 player.fallingVel = 0;
+player.direction = 0;
 player.width = 24;
 player.height = 54;
 player.x = 30;
 player.y = c.height - player.height - 50;
 player.prevY;
+player.arrows = [];
+player.stab = entity.newEntity();
+player.stab.height = 7;
+player.stab.width = 45;
+player.stab.active = false;
+player.stab.activeTime = 25;
+player.stab.activeFor = 0;
+player.stab.update = function(x,y,width,height,direction){
+  if(this.activeFor === this.activeTime){
+    this.active = false;
+    this.activeFor = 0;
+  } else {
+    if(!direction){
+      this.x = x+width/2;
+      this.y = y+(height/2-this.height/2);
+    } else {
+      this.x = x-(this.width-width/2);
+      this.y = y+(height/2-this.height/2);
+    }
+    this.activeFor++
+  }
+}
+
+player.draw = function(ctx) {
+  ctx.fillRect(this.x,this.y,this.width,this.height);
+  ctx.save();
+  ctx.translate(player.x+12, player.y+12);
+  var moueCoords = mouseCoords = m.getCoords();
+  var mx = mouseCoords.x;
+  var my = mouseCoords.y;
+  var dx = mx-player.x+12;
+  var dy = my-player.y+12;
+  ctx.rotate(helpers.getRotation(dx,dy));
+  ctx.drawImage(assets.getAsset('arrow'),-10,-10,20,20);
+  ctx.restore();
+  if(player.stab.active){
+    player.stab.draw(ctx);
+  }
+  if(player.arrows.length > 0) {
+    for (var i = 0; i < player.arrows.length; i++) {
+      player.arrows[i].draw(ctx);
+    }
+  }
+}
 
 player.update = function(grav){
-
-  if(keys.isPressed('UP') && !this.jumping && this.onGround && !upPressed){
+  if(keys.isPressed('w') && !this.jumping && this.onGround && !upPressed){
     upPressed = true;
     this.jumping = true;
     this.onGround = false;
     this.vector.y = -22;
   }
-  if(!keys.isPressed('UP')){
+  if(!keys.isPressed('w')){
     upPressed = false;
     this.jumping = false
     this.vector.y = 0;
   }
-  if(keys.isPressed('DOWN') && this.onGround && !keys.isPressed('RIGHT') && !keys.isPressed('LEFT')){
+  if(keys.isPressed('s') && this.onGround && !keys.isPressed('d') && !keys.isPressed('a')){
     this.kneeling = true;
   }
-  if(!keys.isPressed('DOWN')){
+  if(!keys.isPressed('s')){
     this.kneeling = false;
   }
-  if(keys.isPressed('LEFT') && !keys.isPressed('RIGHT') && !this.kneeling){
+  if(keys.isPressed('a') && !keys.isPressed('d') && !this.kneeling){
+    player.direction = 1;
     if(!this.jumping){
       this.vector.x = -3;
     } else if(!this.onGround && !this.jumping) {
@@ -92,7 +142,8 @@ player.update = function(grav){
       this.vector.x = -5;
     }
   }
-  if(keys.isPressed('RIGHT') && !keys.isPressed('LEFT') && !this.kneeling){
+  if(keys.isPressed('d') && !keys.isPressed('a') && !this.kneeling){
+    player.direction = 0;
     if(!this.jumping){
       this.vector.x = 3;
     } else if(!this.onGround && !this.jumping) {
@@ -101,9 +152,50 @@ player.update = function(grav){
       this.vector.x = 5;
     }
   }
-  if(!keys.isPressed('LEFT') && !keys.isPressed('RIGHT')){
+  if(!keys.isPressed('a') && !keys.isPressed('d')){
     this.vector.x = 0;
   }
+  if(keys.isPressed('SPACE') && !spacePressed && player.onGround){
+    spacePressed = true;
+    if(!player.stab.active){
+      player.stab.active = true;
+    }
+  }
+  if(!keys.isPressed('SPACE')) {
+    spacePressed = false;
+  }
+  if(m.isClicked() && !mClicked) {
+    mClicked = true;
+    var clickCoords = m.getClickedCoords()
+    mx = clickCoords.x;
+    my = clickCoords.y;
+    var arrow = entity.newEntity();
+    arrow.speed = 10;
+    arrow.width = 5;
+    arrow.height = 5;
+    arrow.x = player.x+(player.width/2);
+    arrow.y = player.y+10;
+    arrow.angle = Math.atan2(my-player.y,mx-player.x);
+    player.arrows.push(arrow);
+    console.log('pew pew');
+  }
+  if(!m.isClicked()){
+    mClicked = false;
+  }
+
+  if(player.arrows.length > 0) {
+    for (var i = 0; i < player.arrows.length; i++) {
+      var arrow = player.arrows[i]
+      arrow.x += Math.cos(arrow.angle) * arrow.speed;
+      arrow.y += Math.sin(arrow.angle) * arrow.speed;
+
+      if(arrow.x<0 || arrow.x>c.width || arrow.y<0 || arrow.y>c.height){
+        player.arrows.splice(i,1);
+      }
+      console.log(player.arrows.length);
+    }
+  }
+
   if(this.y===0){
     this.vector.y = 0;
   }
@@ -120,6 +212,8 @@ player.update = function(grav){
   } else {
     this.height = 54;
   }
+
+  player.stab.update(player.x,player.y,player.width,player.height,player.direction);
 
   if(!this.onGround){
     this.fallingVel += 0.2;
@@ -147,7 +241,7 @@ module.exports = {
   }
 }
 
-},{"../Config/canvas":5,"../Config/keys":8,"./entity":1}],4:[function(require,module,exports){
+},{"../Config/assets":4,"../Config/canvas":5,"../Config/helpers":7,"../Config/keys":8,"../Config/mouse":9,"./entity":1}],4:[function(require,module,exports){
 var assets = [];
 var assetsNum = 0;
 
@@ -162,7 +256,15 @@ module.exports = {
     assetsNum++;
   },
   newAsset : function(name,asset){
-    assets.push({name:asset});
+    assets.push({'name':name,'asset':asset});
+  },
+  getAsset : function(name) {
+    for (var i = 0; i < assets.length; i++) {
+      if(assets[i].name === name){
+        assetObj = assets[i];
+        return assetObj['asset'];
+      }
+    }
   }
 }
 
@@ -220,6 +322,10 @@ module.exports = {
       }
     }
   },
+  getRotation: function(dx,dy){
+    rotation = Math.atan2(dy, dx);
+    return rotation;
+  }
 }
 
 },{}],8:[function(require,module,exports){
@@ -230,6 +336,10 @@ var keys = {
   DOWN: 40,
   LEFT: 37,
   RIGHT: 39,
+  w: 87,
+  s: 83,
+  a: 65,
+  d: 68,
 }
 
 module.exports = {
@@ -254,6 +364,46 @@ module.exports = {
 }
 
 },{}],9:[function(require,module,exports){
+c = require('./canvas');
+
+mouseClicked = false;
+mouseCoords = {x:undefined,y:undefined};
+clickedCoords = {x:undefined,y:undefined};
+
+module.exports = {
+  isClicked: function() {
+    return mouseClicked;
+  },
+  getCoords: function(){
+    return mouseCoords;
+  },
+  getClickedCoords: function(){
+    return clickedCoords;
+  },
+  init: function() {
+    c.canvas.addEventListener('mousedown', function(e){
+      mouseClicked = true;
+      var clickx = e.pageX;
+      var clicky = e.pageY;
+      clickx -= c.canvas.offsetLeft;
+      clicky -= c.canvas.offsetTop;
+      clickedCoords = {x:clickx,y:clicky};
+      console.log(clickedCoords.x,clickedCoords.y);
+    },false);
+    c.canvas.addEventListener('mouseup', function(e){
+      mouseClicked = false;
+    },false);
+    c.canvas.addEventListener('mousemove', function(e){
+      var movex = e.pageX;
+      var movey = e.pageY;
+      movex -= c.canvas.offsetLeft;
+      movey -= c.canvas.offsetTop;
+      mouseCoords = {x:movex,y:movey};
+    },false);
+  }
+}
+
+},{"./canvas":5}],10:[function(require,module,exports){
 var c = require('../Config/canvas');
 var keys = require('../Config/keys');
 var config = require('../Config/config');
@@ -321,7 +471,7 @@ module.exports = {
   },
 }
 
-},{"../Actors/platform":2,"../Actors/player":3,"../Config/canvas":5,"../Config/config":6,"../Config/helpers":7,"../Config/keys":8}],10:[function(require,module,exports){
+},{"../Actors/platform":2,"../Actors/player":3,"../Config/canvas":5,"../Config/config":6,"../Config/helpers":7,"../Config/keys":8}],11:[function(require,module,exports){
 var assets = require('../Config/assets');
 var c = require('../Config/canvas');
 
@@ -335,7 +485,7 @@ var arrow;
 
 function loadAssets(){
   arrow = new Image();
-  arrow.src = "GFX/arrow.png";
+  arrow.src = "./GFX/arrow.png";
   arrow.addEventListener("load",function(){assets.addAsset()},false)
   assets.newAsset("arrow",arrow);
 }
@@ -387,7 +537,7 @@ module.exports = {
   },
 }
 
-},{"../Config/assets":4,"../Config/canvas":5}],11:[function(require,module,exports){
+},{"../Config/assets":4,"../Config/canvas":5}],12:[function(require,module,exports){
 var c = require('../Config/canvas');
 var keys = require('../Config/keys');
 var config = require('../Config/config');
@@ -435,9 +585,10 @@ module.exports = {
   },
 }
 
-},{"../Config/canvas":5,"../Config/config":6,"../Config/keys":8}],12:[function(require,module,exports){
+},{"../Config/canvas":5,"../Config/config":6,"../Config/keys":8}],13:[function(require,module,exports){
 var c = require('./Config/canvas');
 var keys = require('./Config/keys');
+var m = require('./Config/mouse');
 var loadingState = require('./States/loadingState');
 var menuState = require('./States/menuState');
 var gameState = require('./States/gameState');
@@ -471,13 +622,14 @@ function gameLoop(){
 module.exports = {
   init: function() {
     keys.init();
+    m.init();
     gameLoop();
   }
 }
 
-},{"./Config/canvas":5,"./Config/keys":8,"./States/gameState":9,"./States/loadingState":10,"./States/menuState":11}],13:[function(require,module,exports){
+},{"./Config/canvas":5,"./Config/keys":8,"./Config/mouse":9,"./States/gameState":10,"./States/loadingState":11,"./States/menuState":12}],14:[function(require,module,exports){
 var game = require('./game');
 
 game.init();
 
-},{"./game":12}]},{},[13]);
+},{"./game":13}]},{},[14]);

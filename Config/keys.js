@@ -5,6 +5,10 @@ var keys = {
   DOWN: 40,
   LEFT: 37,
   RIGHT: 39,
+  w: 87,
+  s: 83,
+  a: 65,
+  d: 68,
 }
 
 module.exports = {

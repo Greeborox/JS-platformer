@@ -28,4 +28,8 @@ module.exports = {
       }
     }
   },
+  getRotation: function(dx,dy){
+    rotation = Math.atan2(dy, dx);
+    return rotation;
+  }
 }

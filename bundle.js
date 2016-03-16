@@ -27,6 +27,40 @@ module.exports = {
 }
 
 },{}],2:[function(require,module,exports){
+var Entity = require('./entity');
+
+screenTime = 5;
+
+module.exports = {
+  makeParticles: function(x,y,grav){
+    var particles = [];
+    partNum = Math.floor(Math.random() * (5 - 3) + 3)
+    for (var i = 0; i < partNum; i++) {
+      part = Entity.newEntity();
+      part.dead = false;
+      part.x = x,
+      part.y = y,
+      part.width = 3,
+      part.height = 3,
+      part.vx = Math.random() * 10 - 5;
+      part.vy = Math.random() * 15 - 5;
+      part.onScreen = 0;
+      part.update = function(){
+        this.x += this.vx;
+        this.y += this.vy;
+        this.vy += grav/4;
+        this.onScreen++;
+        if (this.onScreen >= screenTime) {
+          this.dead = true;
+        }
+      }
+      particles.push(part);
+    }
+    return particles
+  }
+}
+
+},{"./entity":1}],3:[function(require,module,exports){
 var entity = require('./entity');
 var c = require('../Config/canvas');
 
@@ -44,7 +78,7 @@ module.exports = {
   }
 }
 
-},{"../Config/canvas":5,"./entity":1}],3:[function(require,module,exports){
+},{"../Config/canvas":6,"./entity":1}],4:[function(require,module,exports){
 var entity = require('./entity');
 var keys = require('../Config/keys');
 var c = require('../Config/canvas');
@@ -53,7 +87,8 @@ var helpers = require('../Config/helpers');
 var m = require('../Config/mouse');
 
 var upPressed = false;
-var spacePressed = false;
+var downPressed = false;
+var rClicked = false;
 var mClicked = false;
 
 player = entity.newEntity();
@@ -74,7 +109,7 @@ player.stab = entity.newEntity();
 player.stab.height = 7;
 player.stab.width = 45;
 player.stab.active = false;
-player.stab.activeTime = 25;
+player.stab.activeTime = 40;
 player.stab.activeFor = 0;
 player.stab.update = function(x,y,width,height,direction){
   if(this.activeFor === this.activeTime){
@@ -101,7 +136,24 @@ player.draw = function(ctx) {
   var my = mouseCoords.y;
   var dx = mx-player.x+12;
   var dy = my-player.y+12;
-  ctx.rotate(helpers.getRotation(dx,dy));
+  var rotation = helpers.getRotation(dx,dy)
+  if(!player.direction){
+    if(rotation < -1){
+      rotation = -1;
+    }
+    if(rotation > 1) {
+      rotation = 1;
+    }
+  } else {
+    rot = rotation* 180 / Math.PI
+    if(!(rot<-110&&rot>-180)&&rot<0){
+      rotation = -2;
+    }
+    if(!(rot>110&&rot<180)&&rot>0){
+      rotation = 2;
+    }
+  }
+  ctx.rotate(rotation);
   ctx.drawImage(assets.getAsset('arrow'),-10,-10,20,20);
   ctx.restore();
   if(player.stab.active){
@@ -114,7 +166,7 @@ player.draw = function(ctx) {
   }
 }
 
-player.update = function(grav){
+player.controlKeys = function(){
   if(keys.isPressed('w') && !this.jumping && this.onGround && !upPressed){
     upPressed = true;
     this.jumping = true;
@@ -155,14 +207,17 @@ player.update = function(grav){
   if(!keys.isPressed('a') && !keys.isPressed('d')){
     this.vector.x = 0;
   }
-  if(keys.isPressed('SPACE') && !spacePressed && player.onGround){
-    spacePressed = true;
+}
+
+player.controlMouse = function() {
+  if(m.isRclicked() && !rClicked){
+    rClicked = true;
     if(!player.stab.active){
       player.stab.active = true;
     }
   }
-  if(!keys.isPressed('SPACE')) {
-    spacePressed = false;
+  if(!m.isRclicked()) {
+    rClicked = false;
   }
   if(m.isClicked() && !mClicked) {
     mClicked = true;
@@ -175,14 +230,31 @@ player.update = function(grav){
     arrow.height = 5;
     arrow.x = player.x+(player.width/2);
     arrow.y = player.y+10;
-    arrow.angle = Math.atan2(my-player.y,mx-player.x);
+    arrow.angle = helpers.getRotation(mx-player.x,my-player.y);
+    if(!player.direction){
+      if(arrow.angle < -1){
+        arrow.angle = -1;
+      }
+      if(arrow.angle > 1) {
+        arrow.angle = 1;
+      }
+    } else {
+      rot = arrow.angle* 180 / Math.PI
+      if(!(rot<-110&&rot>-180)&&rot<0){
+        arrow.angle = -2;
+      }
+      if(!(rot>110&&rot<180)&&rot>0){
+        arrow.angle = 2;
+      }
+    }
     player.arrows.push(arrow);
-    console.log('pew pew');
   }
   if(!m.isClicked()){
     mClicked = false;
   }
+}
 
+player.updateArrows = function(){
   if(player.arrows.length > 0) {
     for (var i = 0; i < player.arrows.length; i++) {
       var arrow = player.arrows[i]
@@ -192,9 +264,24 @@ player.update = function(grav){
       if(arrow.x<0 || arrow.x>c.width || arrow.y<0 || arrow.y>c.height){
         player.arrows.splice(i,1);
       }
-      console.log(player.arrows.length);
     }
   }
+}
+
+player.handleKneeling = function(){
+  if(this.kneeling){
+    this.height = 27;
+  } else {
+    this.height = 54;
+  }
+}
+
+player.update = function(grav){
+  this.controlKeys();
+  this.controlMouse();
+  this.updateArrows();
+  player.stab.update(player.x,player.y,player.width,player.height,player.direction);
+  this.handleKneeling();
 
   if(this.y===0){
     this.vector.y = 0;
@@ -207,14 +294,6 @@ player.update = function(grav){
     }
   }
 
-  if(this.kneeling){
-    this.height = 27;
-  } else {
-    this.height = 54;
-  }
-
-  player.stab.update(player.x,player.y,player.width,player.height,player.direction);
-
   if(!this.onGround){
     this.fallingVel += 0.2;
   } else {
@@ -224,7 +303,6 @@ player.update = function(grav){
   this.y += grav+this.fallingVel;
   this.y += this.vector.y;
   this.x += this.vector.x;
-
 
   this.x = Math.max(0, Math.min(this.x, c.width - this.width));
   this.y = Math.max(0, Math.min(this.y, c.height - this.height));
@@ -241,7 +319,7 @@ module.exports = {
   }
 }
 
-},{"../Config/assets":4,"../Config/canvas":5,"../Config/helpers":7,"../Config/keys":8,"../Config/mouse":9,"./entity":1}],4:[function(require,module,exports){
+},{"../Config/assets":5,"../Config/canvas":6,"../Config/helpers":8,"../Config/keys":9,"../Config/mouse":10,"./entity":1}],5:[function(require,module,exports){
 var assets = [];
 var assetsNum = 0;
 
@@ -268,7 +346,7 @@ module.exports = {
   }
 }
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 var canvas = document.getElementById('canvas');
 
 module.exports = {
@@ -278,7 +356,7 @@ module.exports = {
     height: canvas.height,
 };
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 fps = 60;
 gravity = 5;
 
@@ -291,7 +369,7 @@ module.exports = {
   }
 }
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 module.exports = {
   blockRect: function(r1,r2){
     if(r1&&r2){
@@ -308,7 +386,9 @@ module.exports = {
               r1.y = r1.y + overlapY;
               r1.vector.y=0;
             } else {
-              r1.onGround = true;
+              if(r1.hasOwnProperty('onGround')){
+                r1.onGround = true;
+              }
               r1.y = r1.y - overlapY;
             }
           } else {
@@ -325,10 +405,18 @@ module.exports = {
   getRotation: function(dx,dy){
     rotation = Math.atan2(dy, dx);
     return rotation;
+  },
+  checkCollision: function(obj1,obj2){
+    if(obj1 && obj2) {
+      return !(obj1.x + obj1.width < obj2.x ||
+               obj2.x + obj2.width < obj1.x ||
+               obj1.y + obj1.height < obj2.y ||
+               obj2.y + obj2.height < obj1.y);
+    }
   }
 }
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 var pressedKeys = {};
 var keys = {
   SPACE: 32,
@@ -363,16 +451,21 @@ module.exports = {
   }
 }
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 c = require('./canvas');
+helpers = require('./helpers');
 
 mouseClicked = false;
+rMouseClicked = false;
 mouseCoords = {x:undefined,y:undefined};
 clickedCoords = {x:undefined,y:undefined};
 
 module.exports = {
   isClicked: function() {
     return mouseClicked;
+  },
+  isRclicked: function() {
+    return rMouseClicked;
   },
   getCoords: function(){
     return mouseCoords;
@@ -381,17 +474,25 @@ module.exports = {
     return clickedCoords;
   },
   init: function() {
+    c.canvas.addEventListener('contextmenu', function(e) {
+      e.preventDefault();
+    }, false);
     c.canvas.addEventListener('mousedown', function(e){
-      mouseClicked = true;
+      if(e.button === 0) {
+        rMouseClicked = true;
+      }
+      if(e.button === 2) {
+        mouseClicked = true;
+      }
       var clickx = e.pageX;
       var clicky = e.pageY;
       clickx -= c.canvas.offsetLeft;
       clicky -= c.canvas.offsetTop;
       clickedCoords = {x:clickx,y:clicky};
-      console.log(clickedCoords.x,clickedCoords.y);
     },false);
     c.canvas.addEventListener('mouseup', function(e){
       mouseClicked = false;
+      rMouseClicked = false;
     },false);
     c.canvas.addEventListener('mousemove', function(e){
       var movex = e.pageX;
@@ -403,13 +504,14 @@ module.exports = {
   }
 }
 
-},{"./canvas":5}],10:[function(require,module,exports){
+},{"./canvas":6,"./helpers":8}],11:[function(require,module,exports){
 var c = require('../Config/canvas');
 var keys = require('../Config/keys');
 var config = require('../Config/config');
 var helpers = require('../Config/helpers');
 var Platform = require('../Actors/platform');
 var Player = require('../Actors/player');
+var Particle = require('../Actors/particles');
 
 var initialised = false;
 var changeState = false;
@@ -417,13 +519,32 @@ var nextState = undefined;
 var gameLoop = undefined;
 
 var platforms = [];
+var particles = [];
 var player = undefined;
 
 function updateState(){
   player.update(config.getGravity());
+  for(var i = 0; i < particles.length; i++){
+    if(particles[i].length === 0) {
+       particles.splice(i,1);
+    } else {
+      for(var j = 0; j < particles[i].length; j++){
+        particles[i][j].update();
+        if(particles[i][j].dead){
+          particles[i].splice(j,1);
+        }
+      }
+    }
+  }
 
   for(var i = 0; i<platforms.length;i++){
     helpers.blockRect(player,platforms[i]);
+    for(var j = 0; j<player.arrows.length;j++){
+      if(helpers.checkCollision(player.arrows[j],platforms[i])){
+        particles.push(Particle.makeParticles(player.arrows[j].x,player.arrows[j].y,config.getGravity()));
+        player.arrows.splice(j,1);
+      }
+    }
   }
 };
 
@@ -468,10 +589,18 @@ module.exports = {
     }
     c.ctx.fillStyle = player.color;
     player.draw(c.ctx);
+    c.ctx.fillStyle = '#8b0000';
+    for(var i = 0; i < particles.length; i++){
+      for(var j = 0; j < particles[i].length; j++){
+        if(!particles[i][j].dead){
+          particles[i][j].draw(c.ctx);
+        }
+      }
+    }
   },
 }
 
-},{"../Actors/platform":2,"../Actors/player":3,"../Config/canvas":5,"../Config/config":6,"../Config/helpers":7,"../Config/keys":8}],11:[function(require,module,exports){
+},{"../Actors/particles":2,"../Actors/platform":3,"../Actors/player":4,"../Config/canvas":6,"../Config/config":7,"../Config/helpers":8,"../Config/keys":9}],12:[function(require,module,exports){
 var assets = require('../Config/assets');
 var c = require('../Config/canvas');
 
@@ -537,7 +666,7 @@ module.exports = {
   },
 }
 
-},{"../Config/assets":4,"../Config/canvas":5}],12:[function(require,module,exports){
+},{"../Config/assets":5,"../Config/canvas":6}],13:[function(require,module,exports){
 var c = require('../Config/canvas');
 var keys = require('../Config/keys');
 var config = require('../Config/config');
@@ -585,7 +714,7 @@ module.exports = {
   },
 }
 
-},{"../Config/canvas":5,"../Config/config":6,"../Config/keys":8}],13:[function(require,module,exports){
+},{"../Config/canvas":6,"../Config/config":7,"../Config/keys":9}],14:[function(require,module,exports){
 var c = require('./Config/canvas');
 var keys = require('./Config/keys');
 var m = require('./Config/mouse');
@@ -627,9 +756,9 @@ module.exports = {
   }
 }
 
-},{"./Config/canvas":5,"./Config/keys":8,"./Config/mouse":9,"./States/gameState":10,"./States/loadingState":11,"./States/menuState":12}],14:[function(require,module,exports){
+},{"./Config/canvas":6,"./Config/keys":9,"./Config/mouse":10,"./States/gameState":11,"./States/loadingState":12,"./States/menuState":13}],15:[function(require,module,exports){
 var game = require('./game');
 
 game.init();
 
-},{"./game":13}]},{},[14]);
+},{"./game":14}]},{},[15]);

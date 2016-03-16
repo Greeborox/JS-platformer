@@ -14,7 +14,9 @@ module.exports = {
               r1.y = r1.y + overlapY;
               r1.vector.y=0;
             } else {
-              r1.onGround = true;
+              if(r1.hasOwnProperty('onGround')){
+                r1.onGround = true;
+              }
               r1.y = r1.y - overlapY;
             }
           } else {
@@ -31,5 +33,13 @@ module.exports = {
   getRotation: function(dx,dy){
     rotation = Math.atan2(dy, dx);
     return rotation;
+  },
+  checkCollision: function(obj1,obj2){
+    if(obj1 && obj2) {
+      return !(obj1.x + obj1.width < obj2.x ||
+               obj2.x + obj2.width < obj1.x ||
+               obj1.y + obj1.height < obj2.y ||
+               obj2.y + obj2.height < obj1.y);
+    }
   }
 }

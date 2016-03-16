@@ -6,7 +6,8 @@ var helpers = require('../Config/helpers');
 var m = require('../Config/mouse');
 
 var upPressed = false;
-var spacePressed = false;
+var downPressed = false;
+var rClicked = false;
 var mClicked = false;
 
 player = entity.newEntity();
@@ -27,7 +28,7 @@ player.stab = entity.newEntity();
 player.stab.height = 7;
 player.stab.width = 45;
 player.stab.active = false;
-player.stab.activeTime = 25;
+player.stab.activeTime = 40;
 player.stab.activeFor = 0;
 player.stab.update = function(x,y,width,height,direction){
   if(this.activeFor === this.activeTime){
@@ -54,7 +55,24 @@ player.draw = function(ctx) {
   var my = mouseCoords.y;
   var dx = mx-player.x+12;
   var dy = my-player.y+12;
-  ctx.rotate(helpers.getRotation(dx,dy));
+  var rotation = helpers.getRotation(dx,dy)
+  if(!player.direction){
+    if(rotation < -1){
+      rotation = -1;
+    }
+    if(rotation > 1) {
+      rotation = 1;
+    }
+  } else {
+    rot = rotation* 180 / Math.PI
+    if(!(rot<-110&&rot>-180)&&rot<0){
+      rotation = -2;
+    }
+    if(!(rot>110&&rot<180)&&rot>0){
+      rotation = 2;
+    }
+  }
+  ctx.rotate(rotation);
   ctx.drawImage(assets.getAsset('arrow'),-10,-10,20,20);
   ctx.restore();
   if(player.stab.active){
@@ -67,7 +85,7 @@ player.draw = function(ctx) {
   }
 }
 
-player.update = function(grav){
+player.controlKeys = function(){
   if(keys.isPressed('w') && !this.jumping && this.onGround && !upPressed){
     upPressed = true;
     this.jumping = true;
@@ -108,14 +126,17 @@ player.update = function(grav){
   if(!keys.isPressed('a') && !keys.isPressed('d')){
     this.vector.x = 0;
   }
-  if(keys.isPressed('SPACE') && !spacePressed && player.onGround){
-    spacePressed = true;
+}
+
+player.controlMouse = function() {
+  if(m.isRclicked() && !rClicked){
+    rClicked = true;
     if(!player.stab.active){
       player.stab.active = true;
     }
   }
-  if(!keys.isPressed('SPACE')) {
-    spacePressed = false;
+  if(!m.isRclicked()) {
+    rClicked = false;
   }
   if(m.isClicked() && !mClicked) {
     mClicked = true;
@@ -128,14 +149,31 @@ player.update = function(grav){
     arrow.height = 5;
     arrow.x = player.x+(player.width/2);
     arrow.y = player.y+10;
-    arrow.angle = Math.atan2(my-player.y,mx-player.x);
+    arrow.angle = helpers.getRotation(mx-player.x,my-player.y);
+    if(!player.direction){
+      if(arrow.angle < -1){
+        arrow.angle = -1;
+      }
+      if(arrow.angle > 1) {
+        arrow.angle = 1;
+      }
+    } else {
+      rot = arrow.angle* 180 / Math.PI
+      if(!(rot<-110&&rot>-180)&&rot<0){
+        arrow.angle = -2;
+      }
+      if(!(rot>110&&rot<180)&&rot>0){
+        arrow.angle = 2;
+      }
+    }
     player.arrows.push(arrow);
-    console.log('pew pew');
   }
   if(!m.isClicked()){
     mClicked = false;
   }
+}
 
+player.updateArrows = function(){
   if(player.arrows.length > 0) {
     for (var i = 0; i < player.arrows.length; i++) {
       var arrow = player.arrows[i]
@@ -145,9 +183,24 @@ player.update = function(grav){
       if(arrow.x<0 || arrow.x>c.width || arrow.y<0 || arrow.y>c.height){
         player.arrows.splice(i,1);
       }
-      console.log(player.arrows.length);
     }
   }
+}
+
+player.handleKneeling = function(){
+  if(this.kneeling){
+    this.height = 27;
+  } else {
+    this.height = 54;
+  }
+}
+
+player.update = function(grav){
+  this.controlKeys();
+  this.controlMouse();
+  this.updateArrows();
+  player.stab.update(player.x,player.y,player.width,player.height,player.direction);
+  this.handleKneeling();
 
   if(this.y===0){
     this.vector.y = 0;
@@ -160,14 +213,6 @@ player.update = function(grav){
     }
   }
 
-  if(this.kneeling){
-    this.height = 27;
-  } else {
-    this.height = 54;
-  }
-
-  player.stab.update(player.x,player.y,player.width,player.height,player.direction);
-
   if(!this.onGround){
     this.fallingVel += 0.2;
   } else {
@@ -177,7 +222,6 @@ player.update = function(grav){
   this.y += grav+this.fallingVel;
   this.y += this.vector.y;
   this.x += this.vector.x;
-
 
   this.x = Math.max(0, Math.min(this.x, c.width - this.width));
   this.y = Math.max(0, Math.min(this.y, c.height - this.height));

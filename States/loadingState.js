@@ -10,10 +10,14 @@ var text = "Loading";
 var arrow;
 
 function loadAssets(){
-  arrow = new Image();
-  arrow.src = "./GFX/arrow.png";
-  arrow.addEventListener("load",function(){assets.addAsset()},false)
-  assets.newAsset("arrow",arrow);
+  arrowPic = new Image();
+  arrowPic.src = "./GFX/arrow.png";
+  arrowPic.addEventListener("load",function(){assets.addAsset()},false)
+  assets.newAsset("arrow",arrowPic);
+  ladderPic = new Image();
+  ladderPic.src = "./GFX/ladder.png";
+  ladderPic.addEventListener("load",function(){assets.addAsset()},false)
+  assets.newAsset("ladder",ladderPic);
 }
 
 function updateState(){

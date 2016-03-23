@@ -11,13 +11,20 @@ module.exports = {
           var overlapY = combinedHalfHeights - Math.abs(vy);
           if(overlapX >= overlapY) {
             if(vy > 0) {
-              r1.y = r1.y + overlapY;
-              r1.vector.y=0;
+              if(!r1.onLadder){
+                r1.y = r1.y + overlapY;
+                r1.vector.y=0;
+              }
             } else {
               if(r1.hasOwnProperty('onGround')){
                 r1.onGround = true;
               }
-              r1.y = r1.y - overlapY;
+              if(r1.hasOwnProperty('onLadder') && r1.y+r1.height> r2.height){
+                r1.onLadder = false;
+              }
+              if(!r1.onLadder){
+                r1.y = r1.y - overlapY;
+              }
             }
           } else {
             if(vx > 0) {

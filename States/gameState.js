@@ -3,6 +3,7 @@ var keys = require('../Config/keys');
 var config = require('../Config/config');
 var helpers = require('../Config/helpers');
 var Platform = require('../Actors/platform');
+var Ladder = require('../Actors/ladder');
 var Player = require('../Actors/player');
 var Particle = require('../Actors/particles');
 
@@ -12,6 +13,7 @@ var nextState = undefined;
 var gameLoop = undefined;
 
 var platforms = [];
+var ladders = [];
 var particles = [];
 var player = undefined;
 
@@ -39,6 +41,17 @@ function updateState(){
       }
     }
   }
+
+  for(var i = 0; i<ladders.length;i++){
+    if(helpers.checkCollision(player,ladders[i])){
+      player.touchingLadder = true;
+      break;
+    }
+    if(i==ladders.length-1){
+      player.touchingLadder = false;
+      player.onLadder = false;
+    }
+  }
 };
 
 module.exports = {
@@ -64,9 +77,14 @@ module.exports = {
     platform1 = Platform.newPlatform(270,120,228,12);
     platform2 = Platform.newPlatform(200,300,168,12);
     platform3 = Platform.newPlatform(430,380,128,12);
-    platform4 = Platform.newPlatform(40,200,128,12);
+    platform4 = Platform.newPlatform(40,210,128,12);
     platform5 = Platform.newPlatform(0,c.height-12,c.width,12);
     platforms.push(platform1,platform2,platform3,platform4,platform5);
+
+    ladder1 = Ladder.newLadder(100,204,264);
+    ladder2 = Ladder.newLadder(300,108,192);
+    ladder3 = Ladder.newLadder(440,372,96);
+    ladders.push(ladder1,ladder2,ladder3);
 
     player = Player.getPlayer();
 
@@ -79,6 +97,9 @@ module.exports = {
     for(var i = 0; i<platforms.length;i++){
       c.ctx.fillStyle = platforms[i].color;
       platforms[i].draw(c.ctx);
+    }
+    for(var i = 0; i<ladders.length;i++){
+      ladders[i].draw(c.ctx);
     }
     c.ctx.fillStyle = player.color;
     player.draw(c.ctx);

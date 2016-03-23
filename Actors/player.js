@@ -15,6 +15,8 @@ player.color = "blue";
 player.jumping = false;
 player.kneeling = false;
 player.onGround = false;
+player.touchingLadder = false;
+player.onLadder = false;
 player.vector = {x:0,y:0};
 player.fallingVel = 0;
 player.direction = 0;
@@ -72,6 +74,9 @@ player.draw = function(ctx) {
       rotation = 2;
     }
   }
+  if(player.onLadder){
+    rotation = -1.57;
+  }
   ctx.rotate(rotation);
   ctx.drawImage(assets.getAsset('arrow'),-10,-10,20,20);
   ctx.restore();
@@ -86,19 +91,33 @@ player.draw = function(ctx) {
 }
 
 player.controlKeys = function(){
-  if(keys.isPressed('w') && !this.jumping && this.onGround && !upPressed){
+  if(keys.isPressed('w') && !this.jumping && this.onGround && !upPressed && !this.touchingLadder){
     upPressed = true;
     this.jumping = true;
     this.onGround = false;
     this.vector.y = -22;
+  }
+  if(keys.isPressed('w') && !keys.isPressed('a') && !keys.isPressed('d') &&
+   this.touchingLadder && !upPressed){
+    upPressed = true;
+    this.onLadder = true;
+  }
+  if(keys.isPressed('w') && this.onLadder){
+    this.vector.y = -2;
   }
   if(!keys.isPressed('w')){
     upPressed = false;
     this.jumping = false
     this.vector.y = 0;
   }
-  if(keys.isPressed('s') && this.onGround && !keys.isPressed('d') && !keys.isPressed('a')){
+  if(keys.isPressed('s') && this.onGround && !keys.isPressed('d') && !keys.isPressed('a') && !this.touchingLadder){
     this.kneeling = true;
+  }
+  if(keys.isPressed('s') && !this.onLadder && this.touchingLadder){
+    this.onLadder = true;
+  }
+  if(keys.isPressed('s') && this.onLadder){
+    this.vector.y = 2;
   }
   if(!keys.isPressed('s')){
     this.kneeling = false;
@@ -129,7 +148,7 @@ player.controlKeys = function(){
 }
 
 player.controlMouse = function() {
-  if(m.isRclicked() && !rClicked){
+  if(m.isRclicked() && !rClicked && !player.onLadder){
     rClicked = true;
     if(!player.stab.active){
       player.stab.active = true;
@@ -138,7 +157,7 @@ player.controlMouse = function() {
   if(!m.isRclicked()) {
     rClicked = false;
   }
-  if(m.isClicked() && !mClicked) {
+  if(m.isClicked() && !mClicked && !player.onLadder) {
     mClicked = true;
     var clickCoords = m.getClickedCoords()
     mx = clickCoords.x;
@@ -219,8 +238,11 @@ player.update = function(grav){
     this.fallingVel = 0;
   }
 
-  this.y += grav+this.fallingVel;
+  if(!this.onLadder){
+    this.y += grav+this.fallingVel;
+  }
   this.y += this.vector.y;
+
   this.x += this.vector.x;
 
   this.x = Math.max(0, Math.min(this.x, c.width - this.width));

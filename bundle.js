@@ -27,6 +27,30 @@ module.exports = {
 }
 
 },{}],2:[function(require,module,exports){
+var entity = require('./entity');
+var c = require('../Config/canvas');
+var assets = require('../Config/assets');
+
+ladder = entity.newEntity();
+ladder.width = 30;
+ladder.draw = function(ctx) {
+  segments = this.height/12;
+  for (var i = 0; i < segments; i++) {
+    ctx.drawImage(assets.getAsset('ladder'),this.x,this.y+(12*i),this.width,12);
+  }
+}
+
+module.exports = {
+  newLadder: function(x,y,height){
+    var newLad = Object.create(ladder);
+    newLad.x = x;
+    newLad.y = y;
+    newLad.height = height;
+    return newLad;
+  },
+}
+
+},{"../Config/assets":6,"../Config/canvas":7,"./entity":1}],3:[function(require,module,exports){
 var Entity = require('./entity');
 
 screenTime = 5;
@@ -60,7 +84,7 @@ module.exports = {
   }
 }
 
-},{"./entity":1}],3:[function(require,module,exports){
+},{"./entity":1}],4:[function(require,module,exports){
 var entity = require('./entity');
 var c = require('../Config/canvas');
 
@@ -78,7 +102,7 @@ module.exports = {
   }
 }
 
-},{"../Config/canvas":6,"./entity":1}],4:[function(require,module,exports){
+},{"../Config/canvas":7,"./entity":1}],5:[function(require,module,exports){
 var entity = require('./entity');
 var keys = require('../Config/keys');
 var c = require('../Config/canvas');
@@ -96,6 +120,8 @@ player.color = "blue";
 player.jumping = false;
 player.kneeling = false;
 player.onGround = false;
+player.touchingLadder = false;
+player.onLadder = false;
 player.vector = {x:0,y:0};
 player.fallingVel = 0;
 player.direction = 0;
@@ -153,6 +179,9 @@ player.draw = function(ctx) {
       rotation = 2;
     }
   }
+  if(player.onLadder){
+    rotation = -1.57;
+  }
   ctx.rotate(rotation);
   ctx.drawImage(assets.getAsset('arrow'),-10,-10,20,20);
   ctx.restore();
@@ -167,19 +196,33 @@ player.draw = function(ctx) {
 }
 
 player.controlKeys = function(){
-  if(keys.isPressed('w') && !this.jumping && this.onGround && !upPressed){
+  if(keys.isPressed('w') && !this.jumping && this.onGround && !upPressed && !this.touchingLadder){
     upPressed = true;
     this.jumping = true;
     this.onGround = false;
     this.vector.y = -22;
+  }
+  if(keys.isPressed('w') && !keys.isPressed('a') && !keys.isPressed('d') &&
+   this.touchingLadder && !upPressed){
+    upPressed = true;
+    this.onLadder = true;
+  }
+  if(keys.isPressed('w') && this.onLadder){
+    this.vector.y = -2;
   }
   if(!keys.isPressed('w')){
     upPressed = false;
     this.jumping = false
     this.vector.y = 0;
   }
-  if(keys.isPressed('s') && this.onGround && !keys.isPressed('d') && !keys.isPressed('a')){
+  if(keys.isPressed('s') && this.onGround && !keys.isPressed('d') && !keys.isPressed('a') && !this.touchingLadder){
     this.kneeling = true;
+  }
+  if(keys.isPressed('s') && !this.onLadder && this.touchingLadder){
+    this.onLadder = true;
+  }
+  if(keys.isPressed('s') && this.onLadder){
+    this.vector.y = 2;
   }
   if(!keys.isPressed('s')){
     this.kneeling = false;
@@ -210,7 +253,7 @@ player.controlKeys = function(){
 }
 
 player.controlMouse = function() {
-  if(m.isRclicked() && !rClicked){
+  if(m.isRclicked() && !rClicked && !player.onLadder){
     rClicked = true;
     if(!player.stab.active){
       player.stab.active = true;
@@ -219,7 +262,7 @@ player.controlMouse = function() {
   if(!m.isRclicked()) {
     rClicked = false;
   }
-  if(m.isClicked() && !mClicked) {
+  if(m.isClicked() && !mClicked && !player.onLadder) {
     mClicked = true;
     var clickCoords = m.getClickedCoords()
     mx = clickCoords.x;
@@ -300,8 +343,11 @@ player.update = function(grav){
     this.fallingVel = 0;
   }
 
-  this.y += grav+this.fallingVel;
+  if(!this.onLadder){
+    this.y += grav+this.fallingVel;
+  }
   this.y += this.vector.y;
+
   this.x += this.vector.x;
 
   this.x = Math.max(0, Math.min(this.x, c.width - this.width));
@@ -319,7 +365,7 @@ module.exports = {
   }
 }
 
-},{"../Config/assets":5,"../Config/canvas":6,"../Config/helpers":8,"../Config/keys":9,"../Config/mouse":10,"./entity":1}],5:[function(require,module,exports){
+},{"../Config/assets":6,"../Config/canvas":7,"../Config/helpers":9,"../Config/keys":10,"../Config/mouse":11,"./entity":1}],6:[function(require,module,exports){
 var assets = [];
 var assetsNum = 0;
 
@@ -346,7 +392,7 @@ module.exports = {
   }
 }
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 var canvas = document.getElementById('canvas');
 
 module.exports = {
@@ -356,7 +402,7 @@ module.exports = {
     height: canvas.height,
 };
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 fps = 60;
 gravity = 5;
 
@@ -369,7 +415,7 @@ module.exports = {
   }
 }
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 module.exports = {
   blockRect: function(r1,r2){
     if(r1&&r2){
@@ -383,13 +429,20 @@ module.exports = {
           var overlapY = combinedHalfHeights - Math.abs(vy);
           if(overlapX >= overlapY) {
             if(vy > 0) {
-              r1.y = r1.y + overlapY;
-              r1.vector.y=0;
+              if(!r1.onLadder){
+                r1.y = r1.y + overlapY;
+                r1.vector.y=0;
+              }
             } else {
               if(r1.hasOwnProperty('onGround')){
                 r1.onGround = true;
               }
-              r1.y = r1.y - overlapY;
+              if(r1.hasOwnProperty('onLadder') && r1.y+r1.height> r2.height){
+                r1.onLadder = false;
+              }
+              if(!r1.onLadder){
+                r1.y = r1.y - overlapY;
+              }
             }
           } else {
             if(vx > 0) {
@@ -416,7 +469,7 @@ module.exports = {
   }
 }
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 var pressedKeys = {};
 var keys = {
   SPACE: 32,
@@ -451,7 +504,7 @@ module.exports = {
   }
 }
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 c = require('./canvas');
 helpers = require('./helpers');
 
@@ -504,12 +557,13 @@ module.exports = {
   }
 }
 
-},{"./canvas":6,"./helpers":8}],11:[function(require,module,exports){
+},{"./canvas":7,"./helpers":9}],12:[function(require,module,exports){
 var c = require('../Config/canvas');
 var keys = require('../Config/keys');
 var config = require('../Config/config');
 var helpers = require('../Config/helpers');
 var Platform = require('../Actors/platform');
+var Ladder = require('../Actors/ladder');
 var Player = require('../Actors/player');
 var Particle = require('../Actors/particles');
 
@@ -519,6 +573,7 @@ var nextState = undefined;
 var gameLoop = undefined;
 
 var platforms = [];
+var ladders = [];
 var particles = [];
 var player = undefined;
 
@@ -546,6 +601,17 @@ function updateState(){
       }
     }
   }
+
+  for(var i = 0; i<ladders.length;i++){
+    if(helpers.checkCollision(player,ladders[i])){
+      player.touchingLadder = true;
+      break;
+    }
+    if(i==ladders.length-1){
+      player.touchingLadder = false;
+      player.onLadder = false;
+    }
+  }
 };
 
 module.exports = {
@@ -571,9 +637,14 @@ module.exports = {
     platform1 = Platform.newPlatform(270,120,228,12);
     platform2 = Platform.newPlatform(200,300,168,12);
     platform3 = Platform.newPlatform(430,380,128,12);
-    platform4 = Platform.newPlatform(40,200,128,12);
+    platform4 = Platform.newPlatform(40,210,128,12);
     platform5 = Platform.newPlatform(0,c.height-12,c.width,12);
     platforms.push(platform1,platform2,platform3,platform4,platform5);
+
+    ladder1 = Ladder.newLadder(100,204,264);
+    ladder2 = Ladder.newLadder(300,108,192);
+    ladder3 = Ladder.newLadder(440,372,96);
+    ladders.push(ladder1,ladder2,ladder3);
 
     player = Player.getPlayer();
 
@@ -586,6 +657,9 @@ module.exports = {
     for(var i = 0; i<platforms.length;i++){
       c.ctx.fillStyle = platforms[i].color;
       platforms[i].draw(c.ctx);
+    }
+    for(var i = 0; i<ladders.length;i++){
+      ladders[i].draw(c.ctx);
     }
     c.ctx.fillStyle = player.color;
     player.draw(c.ctx);
@@ -600,7 +674,7 @@ module.exports = {
   },
 }
 
-},{"../Actors/particles":2,"../Actors/platform":3,"../Actors/player":4,"../Config/canvas":6,"../Config/config":7,"../Config/helpers":8,"../Config/keys":9}],12:[function(require,module,exports){
+},{"../Actors/ladder":2,"../Actors/particles":3,"../Actors/platform":4,"../Actors/player":5,"../Config/canvas":7,"../Config/config":8,"../Config/helpers":9,"../Config/keys":10}],13:[function(require,module,exports){
 var assets = require('../Config/assets');
 var c = require('../Config/canvas');
 
@@ -613,10 +687,14 @@ var text = "Loading";
 var arrow;
 
 function loadAssets(){
-  arrow = new Image();
-  arrow.src = "./GFX/arrow.png";
-  arrow.addEventListener("load",function(){assets.addAsset()},false)
-  assets.newAsset("arrow",arrow);
+  arrowPic = new Image();
+  arrowPic.src = "./GFX/arrow.png";
+  arrowPic.addEventListener("load",function(){assets.addAsset()},false)
+  assets.newAsset("arrow",arrowPic);
+  ladderPic = new Image();
+  ladderPic.src = "./GFX/ladder.png";
+  ladderPic.addEventListener("load",function(){assets.addAsset()},false)
+  assets.newAsset("ladder",ladderPic);
 }
 
 function updateState(){
@@ -666,7 +744,7 @@ module.exports = {
   },
 }
 
-},{"../Config/assets":5,"../Config/canvas":6}],13:[function(require,module,exports){
+},{"../Config/assets":6,"../Config/canvas":7}],14:[function(require,module,exports){
 var c = require('../Config/canvas');
 var keys = require('../Config/keys');
 var config = require('../Config/config');
@@ -714,7 +792,7 @@ module.exports = {
   },
 }
 
-},{"../Config/canvas":6,"../Config/config":7,"../Config/keys":9}],14:[function(require,module,exports){
+},{"../Config/canvas":7,"../Config/config":8,"../Config/keys":10}],15:[function(require,module,exports){
 var c = require('./Config/canvas');
 var keys = require('./Config/keys');
 var m = require('./Config/mouse');
@@ -756,9 +834,9 @@ module.exports = {
   }
 }
 
-},{"./Config/canvas":6,"./Config/keys":9,"./Config/mouse":10,"./States/gameState":11,"./States/loadingState":12,"./States/menuState":13}],15:[function(require,module,exports){
+},{"./Config/canvas":7,"./Config/keys":10,"./Config/mouse":11,"./States/gameState":12,"./States/loadingState":13,"./States/menuState":14}],16:[function(require,module,exports){
 var game = require('./game');
 
 game.init();
 
-},{"./game":14}]},{},[15]);
+},{"./game":15}]},{},[16]);

@@ -16,7 +16,10 @@ player.jumping = false;
 player.kneeling = false;
 player.onGround = false;
 player.touchingLadder = false;
+player.whichLadder = {};
 player.onLadder = false;
+player.touchingPlatform = false;
+player.whichPlatform = {};
 player.vector = {x:0,y:0};
 player.fallingVel = 0;
 player.direction = 0;
@@ -103,6 +106,7 @@ player.controlKeys = function(){
     this.onLadder = true;
   }
   if(keys.isPressed('w') && this.onLadder){
+    this.x = (this.whichLadder.x+(this.whichLadder.width/2))-this.width/2
     this.vector.y = -2;
   }
   if(!keys.isPressed('w')){
@@ -117,12 +121,13 @@ player.controlKeys = function(){
     this.onLadder = true;
   }
   if(keys.isPressed('s') && this.onLadder){
+    this.x = (this.whichLadder.x+(this.whichLadder.width/2))-this.width/2
     this.vector.y = 2;
   }
   if(!keys.isPressed('s')){
     this.kneeling = false;
   }
-  if(keys.isPressed('a') && !keys.isPressed('d') && !this.kneeling){
+  if(keys.isPressed('a') && !keys.isPressed('d') && !this.kneeling && !(this.touchingPlatform && this.onLadder)){
     player.direction = 1;
     if(!this.jumping){
       this.vector.x = -3;
@@ -132,7 +137,7 @@ player.controlKeys = function(){
       this.vector.x = -5;
     }
   }
-  if(keys.isPressed('d') && !keys.isPressed('a') && !this.kneeling){
+  if(keys.isPressed('d') && !keys.isPressed('a') && !this.kneeling && !(this.touchingPlatform && this.onLadder)){
     player.direction = 0;
     if(!this.jumping){
       this.vector.x = 3;
@@ -244,6 +249,13 @@ player.update = function(grav){
   this.y += this.vector.y;
 
   this.x += this.vector.x;
+
+  if(this.onLadder){
+    if(this.y+this.height> this.whichLadder.y+this.whichLadder.height){
+      this.onLadder = false;
+    }
+  }
+
 
   this.x = Math.max(0, Math.min(this.x, c.width - this.width));
   this.y = Math.max(0, Math.min(this.y, c.height - this.height));

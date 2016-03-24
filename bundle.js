@@ -33,6 +33,7 @@ var assets = require('../Config/assets');
 
 ladder = entity.newEntity();
 ladder.width = 30;
+ladder.type = 'ladder';
 ladder.draw = function(ctx) {
   segments = this.height/12;
   for (var i = 0; i < segments; i++) {
@@ -121,7 +122,10 @@ player.jumping = false;
 player.kneeling = false;
 player.onGround = false;
 player.touchingLadder = false;
+player.whichLadder = {};
 player.onLadder = false;
+player.touchingPlatform = false;
+player.whichPlatform = {};
 player.vector = {x:0,y:0};
 player.fallingVel = 0;
 player.direction = 0;
@@ -208,6 +212,7 @@ player.controlKeys = function(){
     this.onLadder = true;
   }
   if(keys.isPressed('w') && this.onLadder){
+    this.x = (this.whichLadder.x+(this.whichLadder.width/2))-this.width/2
     this.vector.y = -2;
   }
   if(!keys.isPressed('w')){
@@ -222,12 +227,13 @@ player.controlKeys = function(){
     this.onLadder = true;
   }
   if(keys.isPressed('s') && this.onLadder){
+    this.x = (this.whichLadder.x+(this.whichLadder.width/2))-this.width/2
     this.vector.y = 2;
   }
   if(!keys.isPressed('s')){
     this.kneeling = false;
   }
-  if(keys.isPressed('a') && !keys.isPressed('d') && !this.kneeling){
+  if(keys.isPressed('a') && !keys.isPressed('d') && !this.kneeling && !(this.touchingPlatform && this.onLadder)){
     player.direction = 1;
     if(!this.jumping){
       this.vector.x = -3;
@@ -237,7 +243,7 @@ player.controlKeys = function(){
       this.vector.x = -5;
     }
   }
-  if(keys.isPressed('d') && !keys.isPressed('a') && !this.kneeling){
+  if(keys.isPressed('d') && !keys.isPressed('a') && !this.kneeling && !(this.touchingPlatform && this.onLadder)){
     player.direction = 0;
     if(!this.jumping){
       this.vector.x = 3;
@@ -350,6 +356,13 @@ player.update = function(grav){
 
   this.x += this.vector.x;
 
+  if(this.onLadder){
+    if(this.y+this.height> this.whichLadder.y+this.whichLadder.height){
+      this.onLadder = false;
+    }
+  }
+
+
   this.x = Math.max(0, Math.min(this.x, c.width - this.width));
   this.y = Math.max(0, Math.min(this.y, c.height - this.height));
 
@@ -434,14 +447,11 @@ module.exports = {
                 r1.vector.y=0;
               }
             } else {
-              if(r1.hasOwnProperty('onGround')){
-                r1.onGround = true;
-              }
-              if(r1.hasOwnProperty('onLadder') && r1.y+r1.height> r2.height){
-                r1.onLadder = false;
-              }
               if(!r1.onLadder){
                 r1.y = r1.y - overlapY;
+              }
+              if(r1.hasOwnProperty('onGround')){
+                r1.onGround = true;
               }
             }
           } else {
@@ -605,11 +615,25 @@ function updateState(){
   for(var i = 0; i<ladders.length;i++){
     if(helpers.checkCollision(player,ladders[i])){
       player.touchingLadder = true;
+      player.whichLadder = ladders[i];
       break;
     }
     if(i==ladders.length-1){
       player.touchingLadder = false;
       player.onLadder = false;
+      player.whichLadder = {};
+    }
+  }
+
+  for(var i = 0; i<platforms.length;i++){
+    if(helpers.checkCollision(player,platforms[i])){
+      player.touchingPlatform = true;
+      player.whichPlatform = platforms[i];
+      break;
+    }
+    if(i==ladders.length-1){
+      player.touchingPlatform = false;
+      player.whichPlatform = {};
     }
   }
 };
@@ -643,7 +667,7 @@ module.exports = {
 
     ladder1 = Ladder.newLadder(100,204,264);
     ladder2 = Ladder.newLadder(300,108,192);
-    ladder3 = Ladder.newLadder(440,372,96);
+    ladder3 = Ladder.newLadder(455,108,360);
     ladders.push(ladder1,ladder2,ladder3);
 
     player = Player.getPlayer();

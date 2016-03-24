@@ -4,6 +4,7 @@ var assets = require('../Config/assets');
 
 ladder = entity.newEntity();
 ladder.width = 30;
+ladder.type = 'ladder';
 ladder.draw = function(ctx) {
   segments = this.height/12;
   for (var i = 0; i < segments; i++) {

@@ -16,14 +16,11 @@ module.exports = {
                 r1.vector.y=0;
               }
             } else {
-              if(r1.hasOwnProperty('onGround')){
-                r1.onGround = true;
-              }
-              if(r1.hasOwnProperty('onLadder') && r1.y+r1.height> r2.height){
-                r1.onLadder = false;
-              }
               if(!r1.onLadder){
                 r1.y = r1.y - overlapY;
+              }
+              if(r1.hasOwnProperty('onGround')){
+                r1.onGround = true;
               }
             }
           } else {

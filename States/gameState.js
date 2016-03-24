@@ -45,11 +45,25 @@ function updateState(){
   for(var i = 0; i<ladders.length;i++){
     if(helpers.checkCollision(player,ladders[i])){
       player.touchingLadder = true;
+      player.whichLadder = ladders[i];
       break;
     }
     if(i==ladders.length-1){
       player.touchingLadder = false;
       player.onLadder = false;
+      player.whichLadder = {};
+    }
+  }
+
+  for(var i = 0; i<platforms.length;i++){
+    if(helpers.checkCollision(player,platforms[i])){
+      player.touchingPlatform = true;
+      player.whichPlatform = platforms[i];
+      break;
+    }
+    if(i==ladders.length-1){
+      player.touchingPlatform = false;
+      player.whichPlatform = {};
     }
   }
 };
@@ -83,7 +97,7 @@ module.exports = {
 
     ladder1 = Ladder.newLadder(100,204,264);
     ladder2 = Ladder.newLadder(300,108,192);
-    ladder3 = Ladder.newLadder(440,372,96);
+    ladder3 = Ladder.newLadder(455,108,360);
     ladders.push(ladder1,ladder2,ladder3);
 
     player = Player.getPlayer();

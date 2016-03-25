@@ -1,5 +1,6 @@
 c = require('./canvas');
 helpers = require('./helpers');
+Screen = require('./screen')
 
 mouseClicked = false;
 rMouseClicked = false;
@@ -30,10 +31,11 @@ module.exports = {
       if(e.button === 2) {
         mouseClicked = true;
       }
+      var screen = Screen.getScreen();
       var clickx = e.pageX;
       var clicky = e.pageY;
-      clickx -= c.canvas.offsetLeft;
-      clicky -= c.canvas.offsetTop;
+      clickx -= (c.canvas.offsetLeft-screen.x);
+      clicky -= (c.canvas.offsetTop-screen.y);
       clickedCoords = {x:clickx,y:clicky};
     },false);
     c.canvas.addEventListener('mouseup', function(e){
@@ -41,10 +43,11 @@ module.exports = {
       rMouseClicked = false;
     },false);
     c.canvas.addEventListener('mousemove', function(e){
+      var screen = Screen.getScreen();
       var movex = e.pageX;
       var movey = e.pageY;
-      movex -= c.canvas.offsetLeft;
-      movey -= c.canvas.offsetTop;
+      movex -= (c.canvas.offsetLeft-screen.x);
+      movey -= (c.canvas.offsetTop-screen.y);;
       mouseCoords = {x:movex,y:movey};
     },false);
   }

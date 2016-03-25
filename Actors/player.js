@@ -203,10 +203,6 @@ player.updateArrows = function(){
       var arrow = player.arrows[i]
       arrow.x += Math.cos(arrow.angle) * arrow.speed;
       arrow.y += Math.sin(arrow.angle) * arrow.speed;
-
-      if(arrow.x<0 || arrow.x>c.width || arrow.y<0 || arrow.y>c.height){
-        player.arrows.splice(i,1);
-      }
     }
   }
 }
@@ -255,10 +251,6 @@ player.update = function(grav){
       this.onLadder = false;
     }
   }
-
-
-  this.x = Math.max(0, Math.min(this.x, c.width - this.width));
-  this.y = Math.max(0, Math.min(this.y, c.height - this.height));
 
   if(this.prevY<this.y){
     this.onGround = false;

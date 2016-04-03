@@ -55,33 +55,64 @@ module.exports = {
 var Entity = require('./entity');
 
 screenTime = 5;
+smokeScreenTime = 20;
+
+particle = Entity.newEntity();
+particle.dead = false;
+particle.x = 0;
+particle.y = 0;
+particle.width = 3;
+particle.height = 3;
+particle.vx = 0;
+particle.vy = 0;
+particle.onScreen = 0;
+particle.update = function(){
+  this.x += this.vx;
+  this.y += this.vy;
+  this.vy += 1;
+  this.onScreen++;
+  if(this.onScreen >= screenTime) {
+    this.dead = true;
+  }
+}
+
+smokeParticle = Object.create(particle);
+smokeParticle.update = function(){
+  if(Math.random()>0.5){
+    this.vx *= -1;
+  }
+  this.x += this.vx;
+  this.y += this.vy;
+  this.onScreen++;
+  if(this.onScreen >= smokeScreenTime) {
+    this.dead = true;
+  }
+}
 
 module.exports = {
-  makeParticles: function(x,y,grav){
+  makeParticles: function(x,y){
     var particles = [];
     partNum = Math.floor(Math.random() * (5 - 3) + 3)
     for (var i = 0; i < partNum; i++) {
-      part = Entity.newEntity();
-      part.dead = false;
-      part.x = x,
-      part.y = y,
-      part.width = 3,
-      part.height = 3,
-      part.vx = Math.random() * 10 - 5;
-      part.vy = Math.random() * 15 - 5;
-      part.onScreen = 0;
-      part.update = function(){
-        this.x += this.vx;
-        this.y += this.vy;
-        this.vy += grav/4;
-        this.onScreen++;
-        if (this.onScreen >= screenTime) {
-          this.dead = true;
-        }
-      }
-      particles.push(part);
+      particles[i] = Object.create(particle)
+      particles[i].x = x;
+      particles[i].y = y;
+      particles[i].vx = Math.random() * 10 - 5;
+      particles[i].vy = Math.random() * 15 - 5;
     }
     return particles
+  },
+  makeSmoke: function(x,y){
+    var smokeParts = [];
+    partNum = Math.floor(Math.random() * (5 - 3) + 3)
+    for (var i = 0; i < partNum; i++) {
+      smokeParts[i] = Object.create(smokeParticle)
+      smokeParts[i].x = x;
+      smokeParts[i].y = y;
+      smokeParts[i].vx = Math.random() * 5 - 2;
+      smokeParts[i].vy = Math.random() * (-2);
+    }
+    return smokeParts
   }
 }
 
@@ -198,7 +229,7 @@ player.draw = function(ctx) {
   ctx.fillRect(this.x,this.y,this.width,this.height);
   ctx.save();
   ctx.translate(player.x+12, player.y+12);
-  var moueCoords = mouseCoords = m.getCoords();
+  var mouseCoords = m.getCoords();
   var mx = mouseCoords.x;
   var my = mouseCoords.y;
   var dx = mx-player.x+12;
@@ -600,26 +631,107 @@ module.exports = {
 }
 
 },{"./canvas":7,"./helpers":9,"./screen":12}],12:[function(require,module,exports){
+var c = require('./canvas');
+
 var screen = {
   x: 0,
   y: 0,
+  targetX: 0,
+  targetY: 0,
   width: c.width,
-  height: c.height
+  height: c.height,
+  speed: 15,
 }
 
 module.exports = {
   getScreen: function(){
     return screen;
   },
-  setScreen: function(x,y){
+  updateScreen: function(playerX,playerY,playerW,playerH,playerF,worldW,worldH,my){
+    // handling screen on the X axis
+    if(playerF) {
+      screen.targetX = playerX - (Math.floor(c.width/3))*2;
+      if(screen.x > screen.targetX) {
+        screen.x -= screen.speed;
+      } else {
+        screen.x += screen.speed;
+      }
+    }
+
+    if(!playerF) {
+      screen.targetX = playerX - (Math.floor(c.width/3)) + playerW;
+      if(screen.x > screen.targetX) {
+        screen.x -= screen.speed;
+      } else {
+        screen.x += screen.speed;
+      }
+    }
+
+    if(Math.abs(screen.x - screen.targetX)<=screen.speed){
+      screen.x = screen.targetX;
+    }
+
+    // handling the screen on the Y axis
+    playerYC = playerY+playerW/2;
+    if(my>playerYC-150) {
+      screen.targetY = (Math.floor(playerY + (playerH / 2) - (screen.height / 2)))+50;
+    }
+
+    if(my<playerYC+150) {
+      screen.targetY = (Math.floor(playerY + (playerH / 2) - (screen.height / 2)))-50;
+    }
+
+    if(my>playerYC-150 && my<playerYC+150){
+      screen.targetY = Math.floor(playerY + (playerH / 2) - (screen.height / 2));
+    }
+
+    if(screen.y>screen.targetY) {
+      screen.y -= Math.floor(screen.speed/4);
+    } else {
+      screen.y += Math.floor(screen.speed/4);
+    }
+
+    if(Math.abs(screen.y - screen.targetY)<=screen.speed){
+      screen.y = screen.targetY;
+    }
+
+
+    //screen.y = Math.floor(playerY + (playerH / 2) - (screen.height / 2));
+
+    // hodling screen within the world bounds
+
+    if(screen.x < 0){
+      screen.x = 0;
+    };
+    if(screen.y < 0){
+      screen.y = 0;
+    };
+    if(screen.x + screen.width > worldW){
+      screen.x = worldW - screen.width;
+    };
+    if(screen.y + screen.height > worldH){
+      screen.y = worldH - screen.height;
+    };
+  },
+  setScreen: function(x,y,targetY){
     screen.x = x;
     screen.y = y;
+    if(targetY){
+      screen.targetY = targetY;
+    }
+  },
+  resetScreen: function(){
+    screen.x = 0;
+    screen.y = 0;
+    screen.width = c.width;
+    screen.height = c.height;
   }
 }
 
-},{}],13:[function(require,module,exports){
+},{"./canvas":7}],13:[function(require,module,exports){
 var c = require('../Config/canvas');
 var keys = require('../Config/keys');
+var m = require('../Config/mouse');
 var config = require('../Config/config');
 var helpers = require('../Config/helpers');
 var Screen = require('../Config/screen');
@@ -638,6 +750,7 @@ var movPlatforms = [];
 var lavas = [];
 var ladders = [];
 var particles = [];
+var smokeParts = [];
 var player = undefined;
 
 function resetGame(){
@@ -657,23 +770,8 @@ function updateState(){
   player.x = Math.max(0, Math.min(player.x, world.width - player.width));
   player.y = Math.max(0, Math.min(player.y, world.height - player.height));
 
-  gameScreen.x = Math.floor(player.x + (player.width / 2) - (gameScreen.width / 2));
-  gameScreen.y = Math.floor(player.y + (player.height / 2) - (gameScreen.height / 2));
-
-  if(gameScreen.x < world.x){
-    gameScreen.x = world.x;
-  };
-  if(gameScreen.y < world.y){
-    gameScreen.y = world.y;
-  };
-  if(gameScreen.x + gameScreen.width > world.x + world.width){
-    gameScreen.x = world.x + world.width - gameScreen.width;
-  };
-  if(gameScreen.y + gameScreen.height > world.height){
-    gameScreen.y = world.height - gameScreen.height;
-  };
-
-  Screen.setScreen(gameScreen.x,gameScreen.y);
+  mouseCoords = m.getCoords();
+  Screen.updateScreen(player.x,player.y,player.width,player.height,player.direction,world.width,world.height,mouseCoords.y);
 
   for(var i = 0; i < particles.length; i++){
     if(particles[i].length === 0) {
@@ -688,11 +786,24 @@ function updateState(){
     }
   }
 
+  for(var i = 0; i < smokeParts.length; i++){
+    if(smokeParts[i].length === 0) {
+       smokeParts.splice(i,1);
+    } else {
+      for(var j = 0; j < smokeParts[i].length; j++){
+        smokeParts[i][j].update();
+        if(smokeParts[i][j].dead){
+          smokeParts[i].splice(j,1);
+        }
+      }
+    }
+  }
+
   for(var i = 0; i<platforms.length;i++){
     helpers.blockRect(player,platforms[i]);
     for(var j = 0; j<player.arrows.length;j++){
       if(helpers.checkCollision(player.arrows[j],platforms[i])){
-        particles.push(Particle.makeParticles(player.arrows[j].x,player.arrows[j].y,config.getGravity()));
+        particles.push(Particle.makeParticles(player.arrows[j].x,player.arrows[j].y));
         player.arrows.splice(j,1);
       }
     }
@@ -734,13 +845,10 @@ function updateState(){
     helpers.blockRect(player,movPlatforms[i]);
     for(var j = 0; j<player.arrows.length;j++){
       if(helpers.checkCollision(player.arrows[j],movPlatforms[i])){
-        particles.push(Particle.makeParticles(player.arrows[j].x,player.arrows[j].y,config.getGravity()));
+        particles.push(Particle.makeParticles(player.arrows[j].x,player.arrows[j].y));
         player.arrows.splice(j,1);
       }
     }
-    /*if(helpers.checkCollision(player,movPlatforms[i])){
-      player.touchingPlatform = true;
-    }*/
   }
 
   for(var i = 0; i<lavas.length;i++){
@@ -749,6 +857,7 @@ function updateState(){
     }
     for(var j = 0; j<player.arrows.length;j++){
       if(helpers.checkCollision(player.arrows[j],lavas[i])){
+        smokeParts.push(Particle.makeSmoke(player.arrows[j].x,player.arrows[j].y));
         player.arrows.splice(j,1);
       }
     }
@@ -785,9 +894,6 @@ module.exports = {
       height: 3000,
     };
 
-    Screen.setScreen(0,world.height-c.height);
-    gameScreen = Screen.getScreen();
-
     platform1 = Platform.newPlatform(270,2608,228,12);
     platform2 = Platform.newPlatform(200,2838,168,12);
     platform3 = Platform.newPlatform(430,2738,128,12);
@@ -822,12 +928,15 @@ module.exports = {
     player.y = world.height - player.height - 20;
     player.x =30;
 
+    Screen.setScreen(0,world.height-c.height,player.y+(player.height/2)-(screen.height/2));
+
     gameLoop = setInterval(function(){
       updateState();
     },1000/config.getFPS());
   },
   draw: function() {
     if(!changeState){
+      gameScreen = Screen.getScreen();
       c.ctx.clearRect(0,0,c.width,c.height);
       c.ctx.save();
       c.ctx.translate(-gameScreen.x, -gameScreen.y);
@@ -856,12 +965,20 @@ module.exports = {
           }
         }
       }
+      c.ctx.fillStyle = '#333';
+      for(var i = 0; i < smokeParts.length; i++){
+        for(var j = 0; j < smokeParts[i].length; j++){
+          if(!smokeParts[i][j].dead){
+            smokeParts[i][j].draw(c.ctx);
+          }
+        }
+      }
       c.ctx.restore()
     }
   },
 }
 
-},{"../Actors/ladder":2,"../Actors/particles":3,"../Actors/platform":4,"../Actors/player":5,"../Config/canvas":7,"../Config/config":8,"../Config/helpers":9,"../Config/keys":10,"../Config/screen":12}],14:[function(require,module,exports){
+},{"../Actors/ladder":2,"../Actors/particles":3,"../Actors/platform":4,"../Actors/player":5,"../Config/canvas":7,"../Config/config":8,"../Config/helpers":9,"../Config/keys":10,"../Config/mouse":11,"../Config/screen":12}],14:[function(require,module,exports){
 var assets = require('../Config/assets');
 var c = require('../Config/canvas');
 

@@ -1,5 +1,6 @@
 var c = require('../Config/canvas');
 var keys = require('../Config/keys');
+var m = require('../Config/mouse');
 var config = require('../Config/config');
 var helpers = require('../Config/helpers');
 var Screen = require('../Config/screen');
@@ -18,6 +19,7 @@ var movPlatforms = [];
 var lavas = [];
 var ladders = [];
 var particles = [];
+var smokeParts = [];
 var player = undefined;
 
 function resetGame(){
@@ -37,23 +39,8 @@ function updateState(){
   player.x = Math.max(0, Math.min(player.x, world.width - player.width));
   player.y = Math.max(0, Math.min(player.y, world.height - player.height));
 
-  gameScreen.x = Math.floor(player.x + (player.width / 2) - (gameScreen.width / 2));
-  gameScreen.y = Math.floor(player.y + (player.height / 2) - (gameScreen.height / 2));
-
-  if(gameScreen.x < world.x){
-    gameScreen.x = world.x;
-  };
-  if(gameScreen.y < world.y){
-    gameScreen.y = world.y;
-  };
-  if(gameScreen.x + gameScreen.width > world.x + world.width){
-    gameScreen.x = world.x + world.width - gameScreen.width;
-  };
-  if(gameScreen.y + gameScreen.height > world.height){
-    gameScreen.y = world.height - gameScreen.height;
-  };
-
-  Screen.setScreen(gameScreen.x,gameScreen.y);
+  mouseCoords = m.getCoords();
+  Screen.updateScreen(player.x,player.y,player.width,player.height,player.direction,world.width,world.height,mouseCoords.y);
 
   for(var i = 0; i < particles.length; i++){
     if(particles[i].length === 0) {
@@ -68,11 +55,24 @@ function updateState(){
     }
   }
 
+  for(var i = 0; i < smokeParts.length; i++){
+    if(smokeParts[i].length === 0) {
+       smokeParts.splice(i,1);
+    } else {
+      for(var j = 0; j < smokeParts[i].length; j++){
+        smokeParts[i][j].update();
+        if(smokeParts[i][j].dead){
+          smokeParts[i].splice(j,1);
+        }
+      }
+    }
+  }
+
   for(var i = 0; i<platforms.length;i++){
     helpers.blockRect(player,platforms[i]);
     for(var j = 0; j<player.arrows.length;j++){
       if(helpers.checkCollision(player.arrows[j],platforms[i])){
-        particles.push(Particle.makeParticles(player.arrows[j].x,player.arrows[j].y,config.getGravity()));
+        particles.push(Particle.makeParticles(player.arrows[j].x,player.arrows[j].y));
         player.arrows.splice(j,1);
       }
     }
@@ -114,13 +114,10 @@ function updateState(){
     helpers.blockRect(player,movPlatforms[i]);
     for(var j = 0; j<player.arrows.length;j++){
       if(helpers.checkCollision(player.arrows[j],movPlatforms[i])){
-        particles.push(Particle.makeParticles(player.arrows[j].x,player.arrows[j].y,config.getGravity()));
+        particles.push(Particle.makeParticles(player.arrows[j].x,player.arrows[j].y));
         player.arrows.splice(j,1);
       }
     }
-    /*if(helpers.checkCollision(player,movPlatforms[i])){
-      player.touchingPlatform = true;
-    }*/
   }
 
   for(var i = 0; i<lavas.length;i++){
@@ -129,6 +126,7 @@ function updateState(){
     }
     for(var j = 0; j<player.arrows.length;j++){
       if(helpers.checkCollision(player.arrows[j],lavas[i])){
+        smokeParts.push(Particle.makeSmoke(player.arrows[j].x,player.arrows[j].y));
         player.arrows.splice(j,1);
       }
     }
@@ -165,9 +163,6 @@ module.exports = {
       height: 3000,
     };
 
-    Screen.setScreen(0,world.height-c.height);
-    gameScreen = Screen.getScreen();
-
     platform1 = Platform.newPlatform(270,2608,228,12);
     platform2 = Platform.newPlatform(200,2838,168,12);
     platform3 = Platform.newPlatform(430,2738,128,12);
@@ -202,12 +197,15 @@ module.exports = {
     player.y = world.height - player.height - 20;
     player.x =30;
 
+    Screen.setScreen(0,world.height-c.height,player.y+(player.height/2)-(screen.height/2));
+
     gameLoop = setInterval(function(){
       updateState();
     },1000/config.getFPS());
   },
   draw: function() {
     if(!changeState){
+      gameScreen = Screen.getScreen();
       c.ctx.clearRect(0,0,c.width,c.height);
       c.ctx.save();
       c.ctx.translate(-gameScreen.x, -gameScreen.y);
@@ -233,6 +231,14 @@ module.exports = {
         for(var j = 0; j < particles[i].length; j++){
           if(!particles[i][j].dead){
             particles[i][j].draw(c.ctx);
+          }
+        }
+      }
+      c.ctx.fillStyle = '#333';
+      for(var i = 0; i < smokeParts.length; i++){
+        for(var j = 0; j < smokeParts[i].length; j++){
+          if(!smokeParts[i][j].dead){
+            smokeParts[i][j].draw(c.ctx);
           }
         }
       }

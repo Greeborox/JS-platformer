@@ -55,7 +55,7 @@ player.draw = function(ctx) {
   ctx.fillRect(this.x,this.y,this.width,this.height);
   ctx.save();
   ctx.translate(player.x+12, player.y+12);
-  var moueCoords = mouseCoords = m.getCoords();
+  var mouseCoords = m.getCoords();
   var mx = mouseCoords.x;
   var my = mouseCoords.y;
   var dx = mx-player.x+12;

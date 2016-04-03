@@ -28,6 +28,7 @@ function resetGame(){
   movPlatforms = [];
   lavas = [];
   ladders = [];
+  player.arrows = [];
   player = undefined;
   changeState = true;
   nextState = "menuState";
@@ -195,6 +196,7 @@ module.exports = {
 
     player = Player.getPlayer();
     player.y = world.height - player.height - 20;
+    player.arrows = [];
     player.x =30;
 
     Screen.setScreen(0,world.height-c.height,player.y+(player.height/2)-(screen.height/2));

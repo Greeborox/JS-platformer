@@ -16,6 +16,8 @@ var gameLoop = undefined;
 
 var platforms = [];
 var movPlatforms = [];
+var ledges = [];
+var vanPlatforms = [];
 var lavas = [];
 var ladders = [];
 var particles = [];
@@ -26,6 +28,8 @@ function resetGame(){
   clearInterval(gameLoop);
   platforms = [];
   movPlatforms = [];
+  ledges = [];
+  vanPlatforms = [];
   lavas = [];
   ladders = [];
   player.arrows = [];
@@ -73,6 +77,27 @@ function updateState(){
     helpers.blockRect(player,platforms[i]);
     for(var j = 0; j<player.arrows.length;j++){
       if(helpers.checkCollision(player.arrows[j],platforms[i])){
+        particles.push(Particle.makeParticles(player.arrows[j].x,player.arrows[j].y));
+        player.arrows.splice(j,1);
+      }
+    }
+  }
+  for(var i = 0; i<ledges.length;i++){
+    helpers.blockLedge(player,ledges[i]);
+    for(var j = 0; j<player.arrows.length;j++){
+      if(helpers.checkCollision(player.arrows[j],ledges[i])){
+        particles.push(Particle.makeParticles(player.arrows[j].x,player.arrows[j].y));
+        player.arrows.splice(j,1);
+      }
+    }
+  }
+  for(var i = 0; i<vanPlatforms.length;i++){
+    vanPlatforms[i].update();
+    if(vanPlatforms[i].opacity > 0.3){
+      helpers.blockRect(player,vanPlatforms[i]);
+    }
+    for(var j = 0; j<player.arrows.length;j++){
+      if(helpers.checkCollision(player.arrows[j],vanPlatforms[i]) && vanPlatforms[i].opacity > 0.3){
         particles.push(Particle.makeParticles(player.arrows[j].x,player.arrows[j].y));
         player.arrows.splice(j,1);
       }
@@ -153,6 +178,8 @@ module.exports = {
     initialised = true;
     platforms = [];
     movPlatforms = [];
+    ledges = [];
+    vanPlatforms = [];
     lavas = [];
     ladders = [];
     player = undefined;
@@ -165,17 +192,23 @@ module.exports = {
     };
 
     platform1 = Platform.newPlatform(270,2608,228,12);
-    platform2 = Platform.newPlatform(200,2838,168,12);
-    platform3 = Platform.newPlatform(430,2738,128,12);
-    platform4 = Platform.newPlatform(40,2788,128,12);
-    platform5 = Platform.newPlatform(0,world.height-24,200,12);
-    platform6 = Platform.newPlatform(1650,world.height-24,2500,12);
-    platform7 = Platform.newPlatform(570,2508,268,12);
-    platform8 = Platform.newPlatform(990,2552,168,12);
-    platform9 = Platform.newPlatform(1270,2508,68,12);
-    platform10 = Platform.newPlatform(1290,2808,264,12);
-    platform11 = Platform.newPlatform(1670,2738,164,12);
-    platforms.push(platform1,platform2,platform3,platform4,platform5,platform6, platform7, platform8, platform9, platform10,platform11);
+    platform2 = Platform.newPlatform(430,2738,128,12);
+    platform3 = Platform.newPlatform(40,2788,128,12);
+    platform4 = Platform.newPlatform(0,world.height-24,200,12);
+    platform5 = Platform.newPlatform(1650,world.height-24,2500,12);
+    platform6 = Platform.newPlatform(570,2508,268,12);
+    platform7 = Platform.newPlatform(1270,2508,68,12);
+    platform8 = Platform.newPlatform(1290,2808,264,12);
+    platform9 = Platform.newPlatform(1670,2738,164,12);
+    platforms.push(platform1,platform2,platform3,platform4,platform5, platform6, platform7, platform8, platform9);
+
+    ledge1 = Platform.newPlatform(100,2588,100,12,'red');
+    ledge2 = Platform.newPlatform(100,2488,100,12,'red');
+    ledges.push(ledge1, ledge2);
+
+    vanPlat1 = Platform.newVanishingPlatform(200,2838,168,12,'magenta');
+    vanPlat2 = Platform.newVanishingPlatform(990,2552,168,12,'magenta');
+    vanPlatforms.push(vanPlat1,vanPlat2);
 
     movPlat1 = Platform.newMovingPlatform(400,world.height-36,70,12,'darkGreen',world.height-12, world.height-160,0.5);
     movPlat2 = Platform.newMovingPlatform(570,world.height-80,70,12,'darkGreen',world.height-12, world.height-160,1);
@@ -218,6 +251,14 @@ module.exports = {
       for(var i = 0; i<movPlatforms.length;i++){
         c.ctx.fillStyle = movPlatforms[i].color;
         movPlatforms[i].draw(c.ctx);
+      }
+      for(var i = 0; i<ledges.length;i++){
+        c.ctx.fillStyle = ledges[i].color;
+        ledges[i].draw(c.ctx);
+      }
+      for(var i = 0; i<vanPlatforms.length;i++){
+        c.ctx.fillStyle = vanPlatforms[i].color;
+        vanPlatforms[i].draw(c.ctx);
       }
       for(var i = 0; i<lavas.length;i++){
         c.ctx.fillStyle = lavas[i].color;

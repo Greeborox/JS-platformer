@@ -122,6 +122,7 @@ var c = require('../Config/canvas');
 
 platform = entity.newEntity();
 platform.color = "gray";
+platform.opacity = 1;
 
 module.exports = {
   newPlatform: function(x,y,width,height,color){
@@ -169,6 +170,53 @@ module.exports = {
     }
     return newPlat;
   },
+  newVanishingPlatform: function(x,y,width,height,color){
+    var newPlat = Object.create(platform);
+    newPlat.x = x;
+    newPlat.y = y;
+    newPlat.opacity = Math.random();
+    newPlat.width = width;
+    newPlat.height = height;
+    newPlat.vanishing = true;
+    newPlat.invisible = false;
+    newPlat.invisibleFor = 0;
+    newPlat.invisibleTime = 100;
+    if(color){
+      newPlat.color = color;
+    };
+    newPlat.update = function(){
+      if(this.vanishing){
+        this.opacity -= 0.005;
+        if(this.opacity < 0){
+          this.opacity = 0;
+          this.vanishing = false;
+          this.invisible = true;
+        }
+      }
+
+      if(this.invisible){
+        if(this.invisibleFor < this.invisibleTime) {
+          this.invisibleFor++;
+        } else {
+          this.invisibleFor = 0;
+          this.invisible = false;
+        }
+      }
+
+      if(!this.vanishing && !this.invisible){
+        this.opacity += 0.005;
+        if(this.opacity > 1){
+          this.vanishing = true;
+        }
+      }
+    };
+    newPlat.draw = function(ctx){
+      ctx.globalAlpha=this.opacity;
+      ctx.fillRect(this.x,this.y,this.width,this.height);
+      ctx.globalAlpha=1;
+    }
+    return newPlat;
+  },
 }
 
 },{"../Config/canvas":7,"./entity":1}],5:[function(require,module,exports){
@@ -188,6 +236,8 @@ player = entity.newEntity();
 player.color = "blue";
 player.jumping = false;
 player.kneeling = false;
+player.kneelingFor = 0;
+player.getsUpIn = 0;
 player.onGround = false;
 player.touchingLadder = false;
 player.whichLadder = {};
@@ -384,8 +434,23 @@ player.updateArrows = function(){
 player.handleKneeling = function(){
   if(this.kneeling){
     this.height = 27;
+    if(this.kneelingFor === 0){
+      this.y += 27;
+    }
+    this.kneelingFor++;
   } else {
     this.height = 54;
+    if(this.kneelingFor != 0){
+      this.y -= 27;
+    }
+    this.kneelingFor = 0;
+  }
+  if(this.getsUpIn > 0){
+    this.getsUpIn--;
+    if(this.getsUpIn === 0){
+      this.kneeling = false;
+      this.kneelingFor = 0;
+    }
   }
 }
 
@@ -519,6 +584,34 @@ module.exports = {
               r1.x = r1.x + overlapX;
             } else {
               r1.x = r1.x - overlapX;
+            }
+          }
+        }
+      }
+    }
+  },
+  blockLedge: function(r1,r2){
+    if(r1&&r2){
+      var vx = r1.centerX() - r2.centerX();
+      var vy = r1.centerY() - r2.centerY();
+      var combinedHalfWidths = r1.width/2 + r2.width/2;
+      var combinedHalfHeights = r1.height/2 + r2.height/2;
+      if(Math.abs(vx) < combinedHalfWidths){
+        if(Math.abs(vy) < combinedHalfHeights){
+          var overlapX = combinedHalfWidths - Math.abs(vx);
+          var overlapY = combinedHalfHeights - Math.abs(vy);
+          if(overlapX >= overlapY) {
+            if(vy < 0) {
+              if(!r1.onLadder){
+                if(r1.kneelingFor < 29){
+                  r1.y = r1.y - overlapY;
+                } else {
+                  r1.getsUpIn = 10;
+                }
+              }
+              if(r1.hasOwnProperty('onGround')){
+                r1.onGround = true;
+              }
             }
           }
         }
@@ -747,6 +840,8 @@ var gameLoop = undefined;
 
 var platforms = [];
 var movPlatforms = [];
+var ledges = [];
+var vanPlatforms = [];
 var lavas = [];
 var ladders = [];
 var particles = [];
@@ -757,8 +852,11 @@ function resetGame(){
   clearInterval(gameLoop);
   platforms = [];
   movPlatforms = [];
+  ledges = [];
+  vanPlatforms = [];
   lavas = [];
   ladders = [];
+  player.arrows = [];
   player = undefined;
   changeState = true;
   nextState = "menuState";
@@ -803,6 +901,27 @@ function updateState(){
     helpers.blockRect(player,platforms[i]);
     for(var j = 0; j<player.arrows.length;j++){
       if(helpers.checkCollision(player.arrows[j],platforms[i])){
+        particles.push(Particle.makeParticles(player.arrows[j].x,player.arrows[j].y));
+        player.arrows.splice(j,1);
+      }
+    }
+  }
+  for(var i = 0; i<ledges.length;i++){
+    helpers.blockLedge(player,ledges[i]);
+    for(var j = 0; j<player.arrows.length;j++){
+      if(helpers.checkCollision(player.arrows[j],ledges[i])){
+        particles.push(Particle.makeParticles(player.arrows[j].x,player.arrows[j].y));
+        player.arrows.splice(j,1);
+      }
+    }
+  }
+  for(var i = 0; i<vanPlatforms.length;i++){
+    vanPlatforms[i].update();
+    if(vanPlatforms[i].opacity > 0.3){
+      helpers.blockRect(player,vanPlatforms[i]);
+    }
+    for(var j = 0; j<player.arrows.length;j++){
+      if(helpers.checkCollision(player.arrows[j],vanPlatforms[i]) && vanPlatforms[i].opacity > 0.3){
         particles.push(Particle.makeParticles(player.arrows[j].x,player.arrows[j].y));
         player.arrows.splice(j,1);
       }
@@ -883,6 +1002,8 @@ module.exports = {
     initialised = true;
     platforms = [];
     movPlatforms = [];
+    ledges = [];
+    vanPlatforms = [];
     lavas = [];
     ladders = [];
     player = undefined;
@@ -895,17 +1016,23 @@ module.exports = {
     };
 
     platform1 = Platform.newPlatform(270,2608,228,12);
-    platform2 = Platform.newPlatform(200,2838,168,12);
-    platform3 = Platform.newPlatform(430,2738,128,12);
-    platform4 = Platform.newPlatform(40,2788,128,12);
-    platform5 = Platform.newPlatform(0,world.height-24,200,12);
-    platform6 = Platform.newPlatform(1650,world.height-24,2500,12);
-    platform7 = Platform.newPlatform(570,2508,268,12);
-    platform8 = Platform.newPlatform(990,2552,168,12);
-    platform9 = Platform.newPlatform(1270,2508,68,12);
-    platform10 = Platform.newPlatform(1290,2808,264,12);
-    platform11 = Platform.newPlatform(1670,2738,164,12);
-    platforms.push(platform1,platform2,platform3,platform4,platform5,platform6, platform7, platform8, platform9, platform10,platform11);
+    platform2 = Platform.newPlatform(430,2738,128,12);
+    platform3 = Platform.newPlatform(40,2788,128,12);
+    platform4 = Platform.newPlatform(0,world.height-24,200,12);
+    platform5 = Platform.newPlatform(1650,world.height-24,2500,12);
+    platform6 = Platform.newPlatform(570,2508,268,12);
+    platform7 = Platform.newPlatform(1270,2508,68,12);
+    platform8 = Platform.newPlatform(1290,2808,264,12);
+    platform9 = Platform.newPlatform(1670,2738,164,12);
+    platforms.push(platform1,platform2,platform3,platform4,platform5, platform6, platform7, platform8, platform9);
+
+    ledge1 = Platform.newPlatform(100,2588,100,12,'red');
+    ledge2 = Platform.newPlatform(100,2488,100,12,'red');
+    ledges.push(ledge1, ledge2);
+
+    vanPlat1 = Platform.newVanishingPlatform(200,2838,168,12,'magenta');
+    vanPlat2 = Platform.newVanishingPlatform(990,2552,168,12,'magenta');
+    vanPlatforms.push(vanPlat1,vanPlat2);
 
     movPlat1 = Platform.newMovingPlatform(400,world.height-36,70,12,'darkGreen',world.height-12, world.height-160,0.5);
     movPlat2 = Platform.newMovingPlatform(570,world.height-80,70,12,'darkGreen',world.height-12, world.height-160,1);
@@ -926,6 +1053,7 @@ module.exports = {
 
     player = Player.getPlayer();
     player.y = world.height - player.height - 20;
+    player.arrows = [];
     player.x =30;
 
     Screen.setScreen(0,world.height-c.height,player.y+(player.height/2)-(screen.height/2));
@@ -947,6 +1075,14 @@ module.exports = {
       for(var i = 0; i<movPlatforms.length;i++){
         c.ctx.fillStyle = movPlatforms[i].color;
         movPlatforms[i].draw(c.ctx);
+      }
+      for(var i = 0; i<ledges.length;i++){
+        c.ctx.fillStyle = ledges[i].color;
+        ledges[i].draw(c.ctx);
+      }
+      for(var i = 0; i<vanPlatforms.length;i++){
+        c.ctx.fillStyle = vanPlatforms[i].color;
+        vanPlatforms[i].draw(c.ctx);
       }
       for(var i = 0; i<lavas.length;i++){
         c.ctx.fillStyle = lavas[i].color;

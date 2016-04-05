@@ -14,6 +14,8 @@ player = entity.newEntity();
 player.color = "blue";
 player.jumping = false;
 player.kneeling = false;
+player.kneelingFor = 0;
+player.getsUpIn = 0;
 player.onGround = false;
 player.touchingLadder = false;
 player.whichLadder = {};
@@ -210,8 +212,23 @@ player.updateArrows = function(){
 player.handleKneeling = function(){
   if(this.kneeling){
     this.height = 27;
+    if(this.kneelingFor === 0){
+      this.y += 27;
+    }
+    this.kneelingFor++;
   } else {
     this.height = 54;
+    if(this.kneelingFor != 0){
+      this.y -= 27;
+    }
+    this.kneelingFor = 0;
+  }
+  if(this.getsUpIn > 0){
+    this.getsUpIn--;
+    if(this.getsUpIn === 0){
+      this.kneeling = false;
+      this.kneelingFor = 0;
+    }
   }
 }
 

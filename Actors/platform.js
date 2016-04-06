@@ -98,4 +98,44 @@ module.exports = {
     }
     return newPlat;
   },
+  newExplodingPlatform: function(x,y,width,height,color){
+    var newPlat = Object.create(platform);
+    newPlat.x = x;
+    newPlat.y = y;
+    newPlat.backX = x;
+    newPlat.backY = y;
+    newPlat.width = width;
+    newPlat.height = height;
+    newPlat.touched = false;
+    newPlat.offScreen = false;
+    newPlat.inactive = 150;
+    newPlat.tillExplosion = 50;
+    if(color){
+      newPlat.color = color;
+    };
+    newPlat.update = function(){
+      if(this.touched){
+        if(!this.tillExplosion){
+          this.offScreen = true;
+          this.touched = false;
+          this.x = -500;
+          this.y = -500;
+          this.tillExplosion = 100;
+        } else {
+          this.tillExplosion--;
+        }
+      }
+      if(this.offScreen){
+        if(!this.inactive){
+          this.offScreen = false;
+          this.x = this.backX;
+          this.y = this.backY;
+          this.inactive = 150;
+        } else {
+          this.inactive--;
+        }
+      }
+    }
+    return newPlat;
+  }
 }

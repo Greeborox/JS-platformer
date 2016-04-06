@@ -1,10 +1,8 @@
 var Entity = require('./entity');
 
-screenTime = 5;
-smokeScreenTime = 20;
-
 particle = Entity.newEntity();
 particle.dead = false;
+particle.screenTime = 5;
 particle.x = 0;
 particle.y = 0;
 particle.width = 3;
@@ -17,12 +15,13 @@ particle.update = function(){
   this.y += this.vy;
   this.vy += 1;
   this.onScreen++;
-  if(this.onScreen >= screenTime) {
+  if(this.onScreen >= this.screenTime) {
     this.dead = true;
   }
 }
 
 smokeParticle = Object.create(particle);
+smokeParticle.screenTime = 20;
 smokeParticle.update = function(){
   if(Math.random()>0.5){
     this.vx *= -1;
@@ -30,10 +29,15 @@ smokeParticle.update = function(){
   this.x += this.vx;
   this.y += this.vy;
   this.onScreen++;
-  if(this.onScreen >= smokeScreenTime) {
+  if(this.onScreen >= this.screenTime) {
     this.dead = true;
   }
 }
+
+bigParticle = Object.create(particle);
+bigParticle.width = 15;
+bigParticle.height = 15;
+bigParticle.screenTime = 20;
 
 module.exports = {
   makeParticles: function(x,y){
@@ -47,6 +51,18 @@ module.exports = {
       particles[i].vy = Math.random() * 15 - 5;
     }
     return particles
+  },
+  makeBigParticle: function(x,y){
+    var bigParts = [];
+    partNum = Math.floor(Math.random() * (8 - 4) + 4)
+    for (var i = 0; i < partNum; i++) {
+      bigParts[i] = Object.create(bigParticle)
+      bigParts[i].x = x;
+      bigParts[i].y = y;
+      bigParts[i].vx = Math.random() * 5 - 2;
+      bigParts[i].vy = Math.random() * 5 - 10;
+    }
+    return bigParts
   },
   makeSmoke: function(x,y){
     var smokeParts = [];

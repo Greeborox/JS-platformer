@@ -18,6 +18,7 @@ var platforms = [];
 var movPlatforms = [];
 var ledges = [];
 var vanPlatforms = [];
+var expPlatforms = [];
 var lavas = [];
 var ladders = [];
 var particles = [];
@@ -30,6 +31,7 @@ function resetGame(){
   movPlatforms = [];
   ledges = [];
   vanPlatforms = [];
+  expPlatforms = [];
   lavas = [];
   ladders = [];
   player.arrows = [];
@@ -38,8 +40,25 @@ function resetGame(){
   nextState = "menuState";
 }
 
+function killPlayer(){
+  if(player.alive){
+    particles.push(Particle.makeBigParticle(player.centerX(),player.centerY()));
+  }
+  player.alive = false;
+}
+
 function updateState(){
-  player.update(config.getGravity());
+  if(!player.alive){
+    if(player.deadFor >= 50){
+      player.alive = true;
+      player.deadFor = 0;
+      resetGame();
+    } else {
+      player.deadFor++
+    }
+  } else {
+    player.update(config.getGravity());
+  }
 
   player.x = Math.max(0, Math.min(player.x, world.width - player.width));
   player.y = Math.max(0, Math.min(player.y, world.height - player.height));
@@ -103,6 +122,25 @@ function updateState(){
       }
     }
   }
+
+  for(var i = 0; i<expPlatforms.length;i++){
+    expPlatforms[i].update();
+    if(expPlatforms[i].tillExplosion === 0 && expPlatforms[i].offScreen === false){
+      particles.push(Particle.makeBigParticle(expPlatforms[i].centerX(),expPlatforms[i].centerY()));
+    }
+    helpers.blockRect(player,expPlatforms[i]);
+    if(helpers.checkCollision(player,expPlatforms[i])){
+      expPlatforms[i].touched = true;
+    }
+    for(var j = 0; j<player.arrows.length;j++){
+      if(helpers.checkCollision(player.arrows[j],expPlatforms[i])){
+        particles.push(Particle.makeParticles(player.arrows[j].x,player.arrows[j].y));
+        player.arrows.splice(j,1);
+      }
+    }
+  }
+
+
   for(var i = 0; i<player.arrows.length;i++){
     var arrow = player.arrows[i]
     if(arrow.x<screen.x || arrow.x>screen.x+screen.width || arrow.y<screen.y || arrow.y>screen.y+screen.height){
@@ -148,7 +186,7 @@ function updateState(){
 
   for(var i = 0; i<lavas.length;i++){
     if(helpers.checkCollision(player,lavas[i])){
-      resetGame();
+      killPlayer();
     }
     for(var j = 0; j<player.arrows.length;j++){
       if(helpers.checkCollision(player.arrows[j],lavas[i])){
@@ -195,18 +233,23 @@ module.exports = {
     platform2 = Platform.newPlatform(430,2738,128,12);
     platform3 = Platform.newPlatform(40,2788,128,12);
     platform4 = Platform.newPlatform(0,world.height-24,200,12);
-    platform5 = Platform.newPlatform(1650,world.height-24,2500,12);
-    platform6 = Platform.newPlatform(570,2508,268,12);
-    platform7 = Platform.newPlatform(1270,2508,68,12);
-    platform8 = Platform.newPlatform(1290,2808,264,12);
-    platform9 = Platform.newPlatform(1670,2738,164,12);
-    platforms.push(platform1,platform2,platform3,platform4,platform5, platform6, platform7, platform8, platform9);
+    platform5 = Platform.newPlatform(1650,world.height-24,300,12);
+    platform6 = Platform.newPlatform(2350,world.height-24,1400,12);
+    platform7 = Platform.newPlatform(570,2508,268,12);
+    platform8 = Platform.newPlatform(1270,2508,68,12);
+    platform9 = Platform.newPlatform(1290,2808,264,12);
+    platform10 = Platform.newPlatform(1670,2738,164,12);
+    platforms.push(platform1,platform2,platform3,platform4,platform5, platform6, platform7, platform8, platform9,platform10);
 
     ledge1 = Platform.newPlatform(100,2588,100,12,'red');
     ledge2 = Platform.newPlatform(100,2488,100,12,'red');
     ledges.push(ledge1, ledge2);
 
-    vanPlat1 = Platform.newVanishingPlatform(200,2838,168,12,'magenta');
+    expPlat1 = Platform.newExplodingPlatform(2000,2938,88,12,'#8b0000');
+    expPlat2 = Platform.newExplodingPlatform(2200,2938,88,12,'#8b0000');
+    expPlatforms.push(expPlat1,expPlat2);
+
+    vanPlat1 = Platform.newVanishingPlatform(270,2838,88,12,'magenta');
     vanPlat2 = Platform.newVanishingPlatform(990,2552,168,12,'magenta');
     vanPlatforms.push(vanPlat1,vanPlat2);
 
@@ -260,6 +303,10 @@ module.exports = {
         c.ctx.fillStyle = vanPlatforms[i].color;
         vanPlatforms[i].draw(c.ctx);
       }
+      for(var i = 0; i<expPlatforms.length;i++){
+        c.ctx.fillStyle = expPlatforms[i].color;
+        expPlatforms[i].draw(c.ctx);
+      }
       for(var i = 0; i<lavas.length;i++){
         c.ctx.fillStyle = lavas[i].color;
         lavas[i].draw(c.ctx);
@@ -268,7 +315,9 @@ module.exports = {
         ladders[i].draw(c.ctx);
       }
       c.ctx.fillStyle = player.color;
-      player.draw(c.ctx);
+      if(player.alive){
+        player.draw(c.ctx);
+      }
       c.ctx.fillStyle = '#8b0000';
       for(var i = 0; i < particles.length; i++){
         for(var j = 0; j < particles[i].length; j++){

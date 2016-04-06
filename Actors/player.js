@@ -12,6 +12,8 @@ var mClicked = false;
 
 player = entity.newEntity();
 player.color = "blue";
+player.alive = true;
+player.deadFor = 0;
 player.jumping = false;
 player.kneeling = false;
 player.kneelingFor = 0;

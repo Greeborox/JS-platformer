@@ -4,11 +4,16 @@ var c = require('../Config/canvas');
 var assets = require('../Config/assets');
 var helpers = require('../Config/helpers');
 var m = require('../Config/mouse');
+var magicMissile = require('./Attacks/magicMissile');
 
 var upPressed = false;
 var downPressed = false;
 var rClicked = false;
 var mClicked = false;
+
+var attacks = {
+  'magicMissile' : magicMissile,
+}
 
 player = entity.newEntity();
 player.color = "blue";
@@ -32,7 +37,9 @@ player.height = 54;
 player.x = 30;
 player.y = c.height - player.height - 50;
 player.prevY;
-player.arrows = [];
+player.attacks = ['magicMissile']
+player.currAttack = 'magicMissile'
+player.missiles = [];
 player.stab = entity.newEntity();
 player.stab.height = 7;
 player.stab.width = 45;
@@ -90,9 +97,9 @@ player.draw = function(ctx) {
   if(player.stab.active){
     player.stab.draw(ctx);
   }
-  if(player.arrows.length > 0) {
-    for (var i = 0; i < player.arrows.length; i++) {
-      player.arrows[i].draw(ctx);
+  if(player.missiles.length > 0) {
+    for (var i = 0; i < player.missiles.length; i++) {
+      player.missiles[i].draw(ctx);
     }
   }
 }
@@ -171,42 +178,18 @@ player.controlMouse = function() {
     var clickCoords = m.getClickedCoords()
     mx = clickCoords.x;
     my = clickCoords.y;
-    var arrow = entity.newEntity();
-    arrow.speed = 10;
-    arrow.width = 5;
-    arrow.height = 5;
-    arrow.x = player.x+(player.width/2);
-    arrow.y = player.y+10;
-    arrow.angle = helpers.getRotation(mx-player.x,my-player.y);
-    if(!player.direction){
-      if(arrow.angle < -1){
-        arrow.angle = -1;
-      }
-      if(arrow.angle > 1) {
-        arrow.angle = 1;
-      }
-    } else {
-      rot = arrow.angle* 180 / Math.PI
-      if(!(rot<-110&&rot>-180)&&rot<0){
-        arrow.angle = -2;
-      }
-      if(!(rot>110&&rot<180)&&rot>0){
-        arrow.angle = 2;
-      }
-    }
-    player.arrows.push(arrow);
+    var missile = attacks[player.currAttack].newMissile(player.x,player.y,player.width,mx,my,player.direction);
+    player.missiles.push(missile);
   }
   if(!m.isClicked()){
     mClicked = false;
   }
 }
 
-player.updateArrows = function(){
-  if(player.arrows.length > 0) {
-    for (var i = 0; i < player.arrows.length; i++) {
-      var arrow = player.arrows[i]
-      arrow.x += Math.cos(arrow.angle) * arrow.speed;
-      arrow.y += Math.sin(arrow.angle) * arrow.speed;
+player.updateMissiles = function(){
+  if(player.missiles.length > 0) {
+    for (var i = 0; i < player.missiles.length; i++) {
+      attacks[player.currAttack].updateMissile(player.missiles[i]);
     }
   }
 }
@@ -237,7 +220,7 @@ player.handleKneeling = function(){
 player.update = function(grav){
   this.controlKeys();
   this.controlMouse();
-  this.updateArrows();
+  this.updateMissiles();
   player.stab.update(player.x,player.y,player.width,player.height,player.direction);
   this.handleKneeling();
 

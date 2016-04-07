@@ -1,4 +1,46 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+var helpers = require('../../Config/helpers');
+var Entity = require('../entity')
+
+var magicMissile = Entity.newEntity();
+magicMissile.speed = 10;
+magicMissile.width = 5;
+magicMissile.height = 5;
+magicMissile.x = 0;
+magicMissile.y = 0;
+magicMissile.angle = 0;
+
+module.exports = {
+  newMissile: function(x,y,width,mx,my,direction){
+    missile = Object.create(magicMissile);
+    missile.x = x+(width/2);
+    missile.y = y+10;
+    missile.angle = helpers.getRotation(mx-x,my-y);
+    if(!direction){
+      if(missile.angle < -1){
+        missile.angle = -1;
+      }
+      if(missile.angle > 1) {
+        missile.angle = 1;
+      }
+    } else {
+      rot = missile.angle* 180 / Math.PI
+      if(!(rot<-110&&rot>-180)&&rot<0){
+        missile.angle = -2;
+      }
+      if(!(rot>110&&rot<180)&&rot>0){
+        missile.angle = 2;
+      }
+    }
+    return missile;
+  },
+  updateMissile: function(missile){
+    missile.x += Math.cos(missile.angle) * missile.speed;
+    missile.y += Math.sin(missile.angle) * missile.speed;
+  }
+}
+
+},{"../../Config/helpers":10,"../entity":2}],2:[function(require,module,exports){
 entity = {
   sourceX: 0,
   sourceY: 0,
@@ -26,7 +68,7 @@ module.exports = {
   }
 }
 
-},{}],2:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 var entity = require('./entity');
 var c = require('../Config/canvas');
 var assets = require('../Config/assets');
@@ -51,7 +93,7 @@ module.exports = {
   },
 }
 
-},{"../Config/assets":6,"../Config/canvas":7,"./entity":1}],3:[function(require,module,exports){
+},{"../Config/assets":7,"../Config/canvas":8,"./entity":2}],4:[function(require,module,exports){
 var Entity = require('./entity');
 
 particle = Entity.newEntity();
@@ -132,7 +174,7 @@ module.exports = {
   }
 }
 
-},{"./entity":1}],4:[function(require,module,exports){
+},{"./entity":2}],5:[function(require,module,exports){
 var entity = require('./entity');
 var c = require('../Config/canvas');
 
@@ -275,18 +317,23 @@ module.exports = {
   }
 }
 
-},{"../Config/canvas":7,"./entity":1}],5:[function(require,module,exports){
+},{"../Config/canvas":8,"./entity":2}],6:[function(require,module,exports){
 var entity = require('./entity');
 var keys = require('../Config/keys');
 var c = require('../Config/canvas');
 var assets = require('../Config/assets');
 var helpers = require('../Config/helpers');
 var m = require('../Config/mouse');
+var magicMissile = require('./Attacks/magicMissile');
 
 var upPressed = false;
 var downPressed = false;
 var rClicked = false;
 var mClicked = false;
+
+var attacks = {
+  'magicMissile' : magicMissile,
+}
 
 player = entity.newEntity();
 player.color = "blue";
@@ -310,7 +357,9 @@ player.height = 54;
 player.x = 30;
 player.y = c.height - player.height - 50;
 player.prevY;
-player.arrows = [];
+player.attacks = ['magicMissile']
+player.currAttack = 'magicMissile'
+player.missiles = [];
 player.stab = entity.newEntity();
 player.stab.height = 7;
 player.stab.width = 45;
@@ -368,9 +417,9 @@ player.draw = function(ctx) {
   if(player.stab.active){
     player.stab.draw(ctx);
   }
-  if(player.arrows.length > 0) {
-    for (var i = 0; i < player.arrows.length; i++) {
-      player.arrows[i].draw(ctx);
+  if(player.missiles.length > 0) {
+    for (var i = 0; i < player.missiles.length; i++) {
+      player.missiles[i].draw(ctx);
     }
   }
 }
@@ -449,42 +498,18 @@ player.controlMouse = function() {
     var clickCoords = m.getClickedCoords()
     mx = clickCoords.x;
     my = clickCoords.y;
-    var arrow = entity.newEntity();
-    arrow.speed = 10;
-    arrow.width = 5;
-    arrow.height = 5;
-    arrow.x = player.x+(player.width/2);
-    arrow.y = player.y+10;
-    arrow.angle = helpers.getRotation(mx-player.x,my-player.y);
-    if(!player.direction){
-      if(arrow.angle < -1){
-        arrow.angle = -1;
-      }
-      if(arrow.angle > 1) {
-        arrow.angle = 1;
-      }
-    } else {
-      rot = arrow.angle* 180 / Math.PI
-      if(!(rot<-110&&rot>-180)&&rot<0){
-        arrow.angle = -2;
-      }
-      if(!(rot>110&&rot<180)&&rot>0){
-        arrow.angle = 2;
-      }
-    }
-    player.arrows.push(arrow);
+    var missile = attacks[player.currAttack].newMissile(player.x,player.y,player.width,mx,my,player.direction);
+    player.missiles.push(missile);
   }
   if(!m.isClicked()){
     mClicked = false;
   }
 }
 
-player.updateArrows = function(){
-  if(player.arrows.length > 0) {
-    for (var i = 0; i < player.arrows.length; i++) {
-      var arrow = player.arrows[i]
-      arrow.x += Math.cos(arrow.angle) * arrow.speed;
-      arrow.y += Math.sin(arrow.angle) * arrow.speed;
+player.updateMissiles = function(){
+  if(player.missiles.length > 0) {
+    for (var i = 0; i < player.missiles.length; i++) {
+      attacks[player.currAttack].updateMissile(player.missiles[i]);
     }
   }
 }
@@ -515,7 +540,7 @@ player.handleKneeling = function(){
 player.update = function(grav){
   this.controlKeys();
   this.controlMouse();
-  this.updateArrows();
+  this.updateMissiles();
   player.stab.update(player.x,player.y,player.width,player.height,player.direction);
   this.handleKneeling();
 
@@ -561,7 +586,7 @@ module.exports = {
   }
 }
 
-},{"../Config/assets":6,"../Config/canvas":7,"../Config/helpers":9,"../Config/keys":10,"../Config/mouse":11,"./entity":1}],6:[function(require,module,exports){
+},{"../Config/assets":7,"../Config/canvas":8,"../Config/helpers":10,"../Config/keys":11,"../Config/mouse":12,"./Attacks/magicMissile":1,"./entity":2}],7:[function(require,module,exports){
 var assets = [];
 var assetsNum = 0;
 
@@ -588,7 +613,7 @@ module.exports = {
   }
 }
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 var canvas = document.getElementById('canvas');
 
 module.exports = {
@@ -598,7 +623,7 @@ module.exports = {
     height: canvas.height,
 };
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 fps = 60;
 gravity = 5;
 
@@ -611,7 +636,7 @@ module.exports = {
   }
 }
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 module.exports = {
   blockRect: function(r1,r2){
     if(r1&&r2){
@@ -690,7 +715,7 @@ module.exports = {
   }
 }
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 var pressedKeys = {};
 var keys = {
   SPACE: 32,
@@ -725,7 +750,7 @@ module.exports = {
   }
 }
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 c = require('./canvas');
 helpers = require('./helpers');
 Screen = require('./screen')
@@ -781,7 +806,7 @@ module.exports = {
   }
 }
 
-},{"./canvas":7,"./helpers":9,"./screen":12}],12:[function(require,module,exports){
+},{"./canvas":8,"./helpers":10,"./screen":13}],13:[function(require,module,exports){
 var c = require('./canvas');
 
 var screen = {
@@ -879,7 +904,7 @@ module.exports = {
   }
 }
 
-},{"./canvas":7}],13:[function(require,module,exports){
+},{"./canvas":8}],14:[function(require,module,exports){
 var c = require('../Config/canvas');
 var keys = require('../Config/keys');
 var m = require('../Config/mouse');
@@ -916,7 +941,7 @@ function resetGame(){
   expPlatforms = [];
   lavas = [];
   ladders = [];
-  player.arrows = [];
+  player.missiles = [];
   player = undefined;
   changeState = true;
   nextState = "menuState";
@@ -976,19 +1001,19 @@ function updateState(){
 
   for(var i = 0; i<platforms.length;i++){
     helpers.blockRect(player,platforms[i]);
-    for(var j = 0; j<player.arrows.length;j++){
-      if(helpers.checkCollision(player.arrows[j],platforms[i])){
-        particles.push(Particle.makeParticles(player.arrows[j].x,player.arrows[j].y));
-        player.arrows.splice(j,1);
+    for(var j = 0; j<player.missiles.length;j++){
+      if(helpers.checkCollision(player.missiles[j],platforms[i])){
+        particles.push(Particle.makeParticles(player.missiles[j].x,player.missiles[j].y));
+        player.missiles.splice(j,1);
       }
     }
   }
   for(var i = 0; i<ledges.length;i++){
     helpers.blockLedge(player,ledges[i]);
-    for(var j = 0; j<player.arrows.length;j++){
-      if(helpers.checkCollision(player.arrows[j],ledges[i])){
-        particles.push(Particle.makeParticles(player.arrows[j].x,player.arrows[j].y));
-        player.arrows.splice(j,1);
+    for(var j = 0; j<player.missiles.length;j++){
+      if(helpers.checkCollision(player.missiles[j],ledges[i])){
+        particles.push(Particle.makeParticles(player.missiles[j].x,player.missiles[j].y));
+        player.missiles.splice(j,1);
       }
     }
   }
@@ -997,10 +1022,10 @@ function updateState(){
     if(vanPlatforms[i].opacity > 0.3){
       helpers.blockRect(player,vanPlatforms[i]);
     }
-    for(var j = 0; j<player.arrows.length;j++){
-      if(helpers.checkCollision(player.arrows[j],vanPlatforms[i]) && vanPlatforms[i].opacity > 0.3){
-        particles.push(Particle.makeParticles(player.arrows[j].x,player.arrows[j].y));
-        player.arrows.splice(j,1);
+    for(var j = 0; j<player.missiles.length;j++){
+      if(helpers.checkCollision(player.missiles[j],vanPlatforms[i]) && vanPlatforms[i].opacity > 0.3){
+        particles.push(Particle.makeParticles(player.missiles[j].x,player.missiles[j].y));
+        player.missiles.splice(j,1);
       }
     }
   }
@@ -1014,19 +1039,19 @@ function updateState(){
     if(helpers.checkCollision(player,expPlatforms[i])){
       expPlatforms[i].touched = true;
     }
-    for(var j = 0; j<player.arrows.length;j++){
-      if(helpers.checkCollision(player.arrows[j],expPlatforms[i])){
-        particles.push(Particle.makeParticles(player.arrows[j].x,player.arrows[j].y));
-        player.arrows.splice(j,1);
+    for(var j = 0; j<player.missiles.length;j++){
+      if(helpers.checkCollision(player.missiles[j],expPlatforms[i])){
+        particles.push(Particle.makeParticles(player.missiles[j].x,player.missiles[j].y));
+        player.missiles.splice(j,1);
       }
     }
   }
 
 
-  for(var i = 0; i<player.arrows.length;i++){
-    var arrow = player.arrows[i]
+  for(var i = 0; i<player.missiles.length;i++){
+    var arrow = player.missiles[i]
     if(arrow.x<screen.x || arrow.x>screen.x+screen.width || arrow.y<screen.y || arrow.y>screen.y+screen.height){
-      player.arrows.splice(i,1);
+      player.missiles.splice(i,1);
     }
   }
 
@@ -1058,10 +1083,10 @@ function updateState(){
   for(var i = 0; i<movPlatforms.length;i++){
     movPlatforms[i].update();
     helpers.blockRect(player,movPlatforms[i]);
-    for(var j = 0; j<player.arrows.length;j++){
-      if(helpers.checkCollision(player.arrows[j],movPlatforms[i])){
-        particles.push(Particle.makeParticles(player.arrows[j].x,player.arrows[j].y));
-        player.arrows.splice(j,1);
+    for(var j = 0; j<player.missiles.length;j++){
+      if(helpers.checkCollision(player.missiles[j],movPlatforms[i])){
+        particles.push(Particle.makeParticles(player.missiles[j].x,player.missiles[j].y));
+        player.missiles.splice(j,1);
       }
     }
   }
@@ -1070,10 +1095,10 @@ function updateState(){
     if(helpers.checkCollision(player,lavas[i])){
       killPlayer();
     }
-    for(var j = 0; j<player.arrows.length;j++){
-      if(helpers.checkCollision(player.arrows[j],lavas[i])){
-        smokeParts.push(Particle.makeSmoke(player.arrows[j].x,player.arrows[j].y));
-        player.arrows.splice(j,1);
+    for(var j = 0; j<player.missiles.length;j++){
+      if(helpers.checkCollision(player.missiles[j],lavas[i])){
+        smokeParts.push(Particle.makeSmoke(player.missiles[j].x,player.missiles[j].y));
+        player.missiles.splice(j,1);
       }
     }
   }
@@ -1154,7 +1179,7 @@ module.exports = {
 
     player = Player.getPlayer();
     player.y = world.height - player.height - 20;
-    player.arrows = [];
+    player.missiles = [];
     player.x =30;
 
     Screen.setScreen(0,world.height-c.height,player.y+(player.height/2)-(screen.height/2));
@@ -1221,7 +1246,7 @@ module.exports = {
   },
 }
 
-},{"../Actors/ladder":2,"../Actors/particles":3,"../Actors/platform":4,"../Actors/player":5,"../Config/canvas":7,"../Config/config":8,"../Config/helpers":9,"../Config/keys":10,"../Config/mouse":11,"../Config/screen":12}],14:[function(require,module,exports){
+},{"../Actors/ladder":3,"../Actors/particles":4,"../Actors/platform":5,"../Actors/player":6,"../Config/canvas":8,"../Config/config":9,"../Config/helpers":10,"../Config/keys":11,"../Config/mouse":12,"../Config/screen":13}],15:[function(require,module,exports){
 var assets = require('../Config/assets');
 var c = require('../Config/canvas');
 
@@ -1291,7 +1316,7 @@ module.exports = {
   },
 }
 
-},{"../Config/assets":6,"../Config/canvas":7}],15:[function(require,module,exports){
+},{"../Config/assets":7,"../Config/canvas":8}],16:[function(require,module,exports){
 var c = require('../Config/canvas');
 var keys = require('../Config/keys');
 var config = require('../Config/config');
@@ -1339,7 +1364,7 @@ module.exports = {
   },
 }
 
-},{"../Config/canvas":7,"../Config/config":8,"../Config/keys":10}],16:[function(require,module,exports){
+},{"../Config/canvas":8,"../Config/config":9,"../Config/keys":11}],17:[function(require,module,exports){
 var c = require('./Config/canvas');
 var keys = require('./Config/keys');
 var m = require('./Config/mouse');
@@ -1381,9 +1406,9 @@ module.exports = {
   }
 }
 
-},{"./Config/canvas":7,"./Config/keys":10,"./Config/mouse":11,"./States/gameState":13,"./States/loadingState":14,"./States/menuState":15}],17:[function(require,module,exports){
+},{"./Config/canvas":8,"./Config/keys":11,"./Config/mouse":12,"./States/gameState":14,"./States/loadingState":15,"./States/menuState":16}],18:[function(require,module,exports){
 var game = require('./game');
 
 game.init();
 
-},{"./game":16}]},{},[17]);
+},{"./game":17}]},{},[18]);

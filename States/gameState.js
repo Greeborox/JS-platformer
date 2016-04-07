@@ -34,7 +34,7 @@ function resetGame(){
   expPlatforms = [];
   lavas = [];
   ladders = [];
-  player.arrows = [];
+  player.missiles = [];
   player = undefined;
   changeState = true;
   nextState = "menuState";
@@ -94,19 +94,19 @@ function updateState(){
 
   for(var i = 0; i<platforms.length;i++){
     helpers.blockRect(player,platforms[i]);
-    for(var j = 0; j<player.arrows.length;j++){
-      if(helpers.checkCollision(player.arrows[j],platforms[i])){
-        particles.push(Particle.makeParticles(player.arrows[j].x,player.arrows[j].y));
-        player.arrows.splice(j,1);
+    for(var j = 0; j<player.missiles.length;j++){
+      if(helpers.checkCollision(player.missiles[j],platforms[i])){
+        particles.push(Particle.makeParticles(player.missiles[j].x,player.missiles[j].y));
+        player.missiles.splice(j,1);
       }
     }
   }
   for(var i = 0; i<ledges.length;i++){
     helpers.blockLedge(player,ledges[i]);
-    for(var j = 0; j<player.arrows.length;j++){
-      if(helpers.checkCollision(player.arrows[j],ledges[i])){
-        particles.push(Particle.makeParticles(player.arrows[j].x,player.arrows[j].y));
-        player.arrows.splice(j,1);
+    for(var j = 0; j<player.missiles.length;j++){
+      if(helpers.checkCollision(player.missiles[j],ledges[i])){
+        particles.push(Particle.makeParticles(player.missiles[j].x,player.missiles[j].y));
+        player.missiles.splice(j,1);
       }
     }
   }
@@ -115,10 +115,10 @@ function updateState(){
     if(vanPlatforms[i].opacity > 0.3){
       helpers.blockRect(player,vanPlatforms[i]);
     }
-    for(var j = 0; j<player.arrows.length;j++){
-      if(helpers.checkCollision(player.arrows[j],vanPlatforms[i]) && vanPlatforms[i].opacity > 0.3){
-        particles.push(Particle.makeParticles(player.arrows[j].x,player.arrows[j].y));
-        player.arrows.splice(j,1);
+    for(var j = 0; j<player.missiles.length;j++){
+      if(helpers.checkCollision(player.missiles[j],vanPlatforms[i]) && vanPlatforms[i].opacity > 0.3){
+        particles.push(Particle.makeParticles(player.missiles[j].x,player.missiles[j].y));
+        player.missiles.splice(j,1);
       }
     }
   }
@@ -132,19 +132,19 @@ function updateState(){
     if(helpers.checkCollision(player,expPlatforms[i])){
       expPlatforms[i].touched = true;
     }
-    for(var j = 0; j<player.arrows.length;j++){
-      if(helpers.checkCollision(player.arrows[j],expPlatforms[i])){
-        particles.push(Particle.makeParticles(player.arrows[j].x,player.arrows[j].y));
-        player.arrows.splice(j,1);
+    for(var j = 0; j<player.missiles.length;j++){
+      if(helpers.checkCollision(player.missiles[j],expPlatforms[i])){
+        particles.push(Particle.makeParticles(player.missiles[j].x,player.missiles[j].y));
+        player.missiles.splice(j,1);
       }
     }
   }
 
 
-  for(var i = 0; i<player.arrows.length;i++){
-    var arrow = player.arrows[i]
+  for(var i = 0; i<player.missiles.length;i++){
+    var arrow = player.missiles[i]
     if(arrow.x<screen.x || arrow.x>screen.x+screen.width || arrow.y<screen.y || arrow.y>screen.y+screen.height){
-      player.arrows.splice(i,1);
+      player.missiles.splice(i,1);
     }
   }
 
@@ -176,10 +176,10 @@ function updateState(){
   for(var i = 0; i<movPlatforms.length;i++){
     movPlatforms[i].update();
     helpers.blockRect(player,movPlatforms[i]);
-    for(var j = 0; j<player.arrows.length;j++){
-      if(helpers.checkCollision(player.arrows[j],movPlatforms[i])){
-        particles.push(Particle.makeParticles(player.arrows[j].x,player.arrows[j].y));
-        player.arrows.splice(j,1);
+    for(var j = 0; j<player.missiles.length;j++){
+      if(helpers.checkCollision(player.missiles[j],movPlatforms[i])){
+        particles.push(Particle.makeParticles(player.missiles[j].x,player.missiles[j].y));
+        player.missiles.splice(j,1);
       }
     }
   }
@@ -188,10 +188,10 @@ function updateState(){
     if(helpers.checkCollision(player,lavas[i])){
       killPlayer();
     }
-    for(var j = 0; j<player.arrows.length;j++){
-      if(helpers.checkCollision(player.arrows[j],lavas[i])){
-        smokeParts.push(Particle.makeSmoke(player.arrows[j].x,player.arrows[j].y));
-        player.arrows.splice(j,1);
+    for(var j = 0; j<player.missiles.length;j++){
+      if(helpers.checkCollision(player.missiles[j],lavas[i])){
+        smokeParts.push(Particle.makeSmoke(player.missiles[j].x,player.missiles[j].y));
+        player.missiles.splice(j,1);
       }
     }
   }
@@ -272,7 +272,7 @@ module.exports = {
 
     player = Player.getPlayer();
     player.y = world.height - player.height - 20;
-    player.arrows = [];
+    player.missiles = [];
     player.x =30;
 
     Screen.setScreen(0,world.height-c.height,player.y+(player.height/2)-(screen.height/2));

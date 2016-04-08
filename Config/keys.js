@@ -9,6 +9,7 @@ var keys = {
   s: 83,
   a: 65,
   d: 68,
+  e: 69
 }
 
 module.exports = {

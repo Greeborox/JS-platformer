@@ -1,4 +1,30 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+var Entity = require('../entity')
+
+var gustOfWind = Entity.newEntity();
+gustOfWind.speed = 10;
+gustOfWind.width = 10;
+gustOfWind.height = 55;
+gustOfWind.x = 0;
+gustOfWind.y = 0;
+gustOfWind.angle = 0;
+
+module.exports = {
+  newMissile: function(x,y,width,mx,my,direction){
+    missile = Object.create(gustOfWind);
+    missile.x = x+(width/2);
+    missile.y = y-15;
+    if(direction){
+      missile.speed *= -1;
+    }
+    return missile;
+  },
+  updateMissile: function(missile){
+    missile.x += missile.speed;
+  }
+}
+
+},{"../entity":3}],2:[function(require,module,exports){
 var helpers = require('../../Config/helpers');
 var Entity = require('../entity')
 
@@ -40,7 +66,7 @@ module.exports = {
   }
 }
 
-},{"../../Config/helpers":10,"../entity":2}],2:[function(require,module,exports){
+},{"../../Config/helpers":11,"../entity":3}],3:[function(require,module,exports){
 entity = {
   sourceX: 0,
   sourceY: 0,
@@ -68,7 +94,7 @@ module.exports = {
   }
 }
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 var entity = require('./entity');
 var c = require('../Config/canvas');
 var assets = require('../Config/assets');
@@ -93,7 +119,7 @@ module.exports = {
   },
 }
 
-},{"../Config/assets":7,"../Config/canvas":8,"./entity":2}],4:[function(require,module,exports){
+},{"../Config/assets":8,"../Config/canvas":9,"./entity":3}],5:[function(require,module,exports){
 var Entity = require('./entity');
 
 particle = Entity.newEntity();
@@ -174,7 +200,7 @@ module.exports = {
   }
 }
 
-},{"./entity":2}],5:[function(require,module,exports){
+},{"./entity":3}],6:[function(require,module,exports){
 var entity = require('./entity');
 var c = require('../Config/canvas');
 
@@ -317,7 +343,7 @@ module.exports = {
   }
 }
 
-},{"../Config/canvas":8,"./entity":2}],6:[function(require,module,exports){
+},{"../Config/canvas":9,"./entity":3}],7:[function(require,module,exports){
 var entity = require('./entity');
 var keys = require('../Config/keys');
 var c = require('../Config/canvas');
@@ -325,14 +351,17 @@ var assets = require('../Config/assets');
 var helpers = require('../Config/helpers');
 var m = require('../Config/mouse');
 var magicMissile = require('./Attacks/magicMissile');
+var gustOfWind = require('./Attacks/gustOfWind');
 
 var upPressed = false;
 var downPressed = false;
 var rClicked = false;
 var mClicked = false;
+var ePressed = false;
 
 var attacks = {
   'magicMissile' : magicMissile,
+  'gustOfWind' : gustOfWind,
 }
 
 player = entity.newEntity();
@@ -357,8 +386,8 @@ player.height = 54;
 player.x = 30;
 player.y = c.height - player.height - 50;
 player.prevY;
-player.attacks = ['magicMissile']
-player.currAttack = 'magicMissile'
+player.attacks = ['magicMissile','gustOfWind']
+player.currAttack = 0
 player.missiles = [];
 player.stab = entity.newEntity();
 player.stab.height = 7;
@@ -481,6 +510,16 @@ player.controlKeys = function(){
   if(!keys.isPressed('a') && !keys.isPressed('d')){
     this.vector.x = 0;
   }
+  if(keys.isPressed('e') && !ePressed){
+    ePressed = true;
+    player.currAttack++;
+    if(player.currAttack === player.attacks.length){
+      player.currAttack = 0;
+    }
+  }
+  if(!keys.isPressed('e')){
+    ePressed = false;
+  }
 }
 
 player.controlMouse = function() {
@@ -498,7 +537,7 @@ player.controlMouse = function() {
     var clickCoords = m.getClickedCoords()
     mx = clickCoords.x;
     my = clickCoords.y;
-    var missile = attacks[player.currAttack].newMissile(player.x,player.y,player.width,mx,my,player.direction);
+    var missile = attacks[player.attacks[player.currAttack]].newMissile(player.x,player.y,player.width,mx,my,player.direction);
     player.missiles.push(missile);
   }
   if(!m.isClicked()){
@@ -509,7 +548,7 @@ player.controlMouse = function() {
 player.updateMissiles = function(){
   if(player.missiles.length > 0) {
     for (var i = 0; i < player.missiles.length; i++) {
-      attacks[player.currAttack].updateMissile(player.missiles[i]);
+      attacks[player.attacks[player.currAttack]].updateMissile(player.missiles[i]);
     }
   }
 }
@@ -586,7 +625,7 @@ module.exports = {
   }
 }
 
-},{"../Config/assets":7,"../Config/canvas":8,"../Config/helpers":10,"../Config/keys":11,"../Config/mouse":12,"./Attacks/magicMissile":1,"./entity":2}],7:[function(require,module,exports){
+},{"../Config/assets":8,"../Config/canvas":9,"../Config/helpers":11,"../Config/keys":12,"../Config/mouse":13,"./Attacks/gustOfWind":1,"./Attacks/magicMissile":2,"./entity":3}],8:[function(require,module,exports){
 var assets = [];
 var assetsNum = 0;
 
@@ -613,7 +652,7 @@ module.exports = {
   }
 }
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 var canvas = document.getElementById('canvas');
 
 module.exports = {
@@ -623,7 +662,7 @@ module.exports = {
     height: canvas.height,
 };
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 fps = 60;
 gravity = 5;
 
@@ -636,7 +675,7 @@ module.exports = {
   }
 }
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 module.exports = {
   blockRect: function(r1,r2){
     if(r1&&r2){
@@ -715,7 +754,7 @@ module.exports = {
   }
 }
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 var pressedKeys = {};
 var keys = {
   SPACE: 32,
@@ -727,6 +766,7 @@ var keys = {
   s: 83,
   a: 65,
   d: 68,
+  e: 69
 }
 
 module.exports = {
@@ -750,7 +790,7 @@ module.exports = {
   }
 }
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 c = require('./canvas');
 helpers = require('./helpers');
 Screen = require('./screen')
@@ -806,7 +846,7 @@ module.exports = {
   }
 }
 
-},{"./canvas":8,"./helpers":10,"./screen":13}],13:[function(require,module,exports){
+},{"./canvas":9,"./helpers":11,"./screen":14}],14:[function(require,module,exports){
 var c = require('./canvas');
 
 var screen = {
@@ -904,7 +944,7 @@ module.exports = {
   }
 }
 
-},{"./canvas":8}],14:[function(require,module,exports){
+},{"./canvas":9}],15:[function(require,module,exports){
 var c = require('../Config/canvas');
 var keys = require('../Config/keys');
 var m = require('../Config/mouse');
@@ -1246,7 +1286,7 @@ module.exports = {
   },
 }
 
-},{"../Actors/ladder":3,"../Actors/particles":4,"../Actors/platform":5,"../Actors/player":6,"../Config/canvas":8,"../Config/config":9,"../Config/helpers":10,"../Config/keys":11,"../Config/mouse":12,"../Config/screen":13}],15:[function(require,module,exports){
+},{"../Actors/ladder":4,"../Actors/particles":5,"../Actors/platform":6,"../Actors/player":7,"../Config/canvas":9,"../Config/config":10,"../Config/helpers":11,"../Config/keys":12,"../Config/mouse":13,"../Config/screen":14}],16:[function(require,module,exports){
 var assets = require('../Config/assets');
 var c = require('../Config/canvas');
 
@@ -1316,7 +1356,7 @@ module.exports = {
   },
 }
 
-},{"../Config/assets":7,"../Config/canvas":8}],16:[function(require,module,exports){
+},{"../Config/assets":8,"../Config/canvas":9}],17:[function(require,module,exports){
 var c = require('../Config/canvas');
 var keys = require('../Config/keys');
 var config = require('../Config/config');
@@ -1364,7 +1404,7 @@ module.exports = {
   },
 }
 
-},{"../Config/canvas":8,"../Config/config":9,"../Config/keys":11}],17:[function(require,module,exports){
+},{"../Config/canvas":9,"../Config/config":10,"../Config/keys":12}],18:[function(require,module,exports){
 var c = require('./Config/canvas');
 var keys = require('./Config/keys');
 var m = require('./Config/mouse');
@@ -1406,9 +1446,9 @@ module.exports = {
   }
 }
 
-},{"./Config/canvas":8,"./Config/keys":11,"./Config/mouse":12,"./States/gameState":14,"./States/loadingState":15,"./States/menuState":16}],18:[function(require,module,exports){
+},{"./Config/canvas":9,"./Config/keys":12,"./Config/mouse":13,"./States/gameState":15,"./States/loadingState":16,"./States/menuState":17}],19:[function(require,module,exports){
 var game = require('./game');
 
 game.init();
 
-},{"./game":17}]},{},[18]);
+},{"./game":18}]},{},[19]);

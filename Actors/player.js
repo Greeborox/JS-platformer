@@ -5,14 +5,17 @@ var assets = require('../Config/assets');
 var helpers = require('../Config/helpers');
 var m = require('../Config/mouse');
 var magicMissile = require('./Attacks/magicMissile');
+var gustOfWind = require('./Attacks/gustOfWind');
 
 var upPressed = false;
 var downPressed = false;
 var rClicked = false;
 var mClicked = false;
+var ePressed = false;
 
 var attacks = {
   'magicMissile' : magicMissile,
+  'gustOfWind' : gustOfWind,
 }
 
 player = entity.newEntity();
@@ -37,8 +40,8 @@ player.height = 54;
 player.x = 30;
 player.y = c.height - player.height - 50;
 player.prevY;
-player.attacks = ['magicMissile']
-player.currAttack = 'magicMissile'
+player.attacks = ['magicMissile','gustOfWind']
+player.currAttack = 0
 player.missiles = [];
 player.stab = entity.newEntity();
 player.stab.height = 7;
@@ -161,6 +164,16 @@ player.controlKeys = function(){
   if(!keys.isPressed('a') && !keys.isPressed('d')){
     this.vector.x = 0;
   }
+  if(keys.isPressed('e') && !ePressed){
+    ePressed = true;
+    player.currAttack++;
+    if(player.currAttack === player.attacks.length){
+      player.currAttack = 0;
+    }
+  }
+  if(!keys.isPressed('e')){
+    ePressed = false;
+  }
 }
 
 player.controlMouse = function() {
@@ -178,7 +191,7 @@ player.controlMouse = function() {
     var clickCoords = m.getClickedCoords()
     mx = clickCoords.x;
     my = clickCoords.y;
-    var missile = attacks[player.currAttack].newMissile(player.x,player.y,player.width,mx,my,player.direction);
+    var missile = attacks[player.attacks[player.currAttack]].newMissile(player.x,player.y,player.width,mx,my,player.direction);
     player.missiles.push(missile);
   }
   if(!m.isClicked()){
@@ -189,7 +202,7 @@ player.controlMouse = function() {
 player.updateMissiles = function(){
   if(player.missiles.length > 0) {
     for (var i = 0; i < player.missiles.length; i++) {
-      attacks[player.currAttack].updateMissile(player.missiles[i]);
+      attacks[player.attacks[player.currAttack]].updateMissile(player.missiles[i]);
     }
   }
 }

@@ -7,4 +7,4 @@ Known Bugs:
 - being on a moving platform that goes up to a regular one, pushes the player off the platform.
 - when player is idle while on the ladder for some time and finally gets off he is falling with great velocity.
 - when game state is closed, the arrows, are not removed from the game.
-- when changing spell type, while shooting, the exisitng missiles start behaving like the ones player has just changed to.
+- FIXED! when changing spell type, while shooting, the exisitng missiles start behaving like the ones player has just changed to.

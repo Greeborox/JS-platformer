@@ -41,6 +41,11 @@ module.exports = {
     c.ctx.font="20px Arial";
     c.ctx.fillStyle = '#000';
     c.ctx.textAlign = "left";
-    c.ctx.fillText("press space",20,c.height/2-20);
+    c.ctx.fillText("Welcome to JS Platformer Alpha Build",20,30);
+    c.ctx.fillText("Use the WASD keys to move around",20,60);
+    c.ctx.fillText("You can look around with the mouse",20,90);
+    c.ctx.fillText("Left Click = melee Attack; Right Click = spell",20,120);
+    c.ctx.fillText("Toogle the spells with 'e' key",20,150);
+    c.ctx.fillText("PRESS SPACE",20,c.height/2+40);
   },
 }

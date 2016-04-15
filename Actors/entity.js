@@ -14,6 +14,9 @@ entity = {
     return this.x + this.width/2
   },
   draw: function(ctx) {
+    if(this.color){
+      ctx.fillStyle = this.color;
+    }
     ctx.fillRect(this.x,this.y,this.width,this.height);
   }
 }

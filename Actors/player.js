@@ -6,6 +6,7 @@ var helpers = require('../Config/helpers');
 var m = require('../Config/mouse');
 var magicMissile = require('./Attacks/magicMissile');
 var gustOfWind = require('./Attacks/gustOfWind');
+var fireBomb = require('./Attacks/fireBomb');
 
 var upPressed = false;
 var downPressed = false;
@@ -16,6 +17,7 @@ var ePressed = false;
 var attacks = {
   'magicMissile' : magicMissile,
   'gustOfWind' : gustOfWind,
+  'fireBomb' : fireBomb,
 }
 
 player = entity.newEntity();
@@ -40,7 +42,7 @@ player.height = 54;
 player.x = 30;
 player.y = c.height - player.height - 50;
 player.prevY;
-player.attacks = ['magicMissile','gustOfWind']
+player.attacks = ['magicMissile','gustOfWind','fireBomb']
 player.currAttack = 0
 player.missiles = [];
 player.stab = entity.newEntity();
@@ -202,7 +204,8 @@ player.controlMouse = function() {
 player.updateMissiles = function(){
   if(player.missiles.length > 0) {
     for (var i = 0; i < player.missiles.length; i++) {
-      attacks[player.attacks[player.currAttack]].updateMissile(player.missiles[i]);
+      type = player.missiles[i].type;
+      attacks[type].updateMissile(player.missiles[i]);
     }
   }
 }

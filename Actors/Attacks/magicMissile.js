@@ -2,6 +2,7 @@ var helpers = require('../../Config/helpers');
 var Entity = require('../entity')
 
 var magicMissile = Entity.newEntity();
+magicMissile.type = "magicMissile";
 magicMissile.speed = 10;
 magicMissile.width = 5;
 magicMissile.height = 5;

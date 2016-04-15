@@ -1,17 +1,75 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+var helpers = require('../../Config/helpers');
+var Entity = require('../entity')
+
+var fireBomb = Entity.newEntity();
+fireBomb.type = "fireBomb";
+fireBomb.speedX = 10;
+fireBomb.speedY = 10;
+fireBomb.width = 15;
+fireBomb.height = 15;
+fireBomb.x = 0;
+fireBomb.y = 0;
+
+module.exports = {
+  newMissile: function(x,y,width,mx,my,direction){
+    missile = Object.create(fireBomb);
+    missile.x = x+(width/2);
+    missile.y = y+10;
+    missile.direction = direction;
+    if(!missile.direction){
+      missile.speedX = (mx-missile.x)/10;
+    } else {
+      missile.speedX = (missile.x-mx)/10;
+    }
+    if(missile.speedX > 10){
+      missile.speedX = 10;
+    }
+    if(missile.speedX < 2){
+      missile.speedX = 2;
+    }
+    missile.speedY = (missile.y-my)/4;
+
+    if(missile.speedY > 15){
+      missile.speedY = 15;
+    }
+    if(missile.speedY < 5){
+      missile.speedY = 5;
+    }
+    return missile;
+  },
+  updateMissile: function(missile){
+    if(!missile.direction){
+      missile.x += missile.speedX;
+    } else {
+      missile.x -= missile.speedX;
+    }
+    missile.y -= missile.speedY;
+    missile.y += 3;
+    missile.speedY--;
+    if(missile.speedY < 0){
+      missile.speedY === 0;
+    }
+  }
+}
+
+},{"../../Config/helpers":14,"../entity":6}],2:[function(require,module,exports){
 var Entity = require('../entity')
 
 var gustOfWind = Entity.newEntity();
-gustOfWind.speed = 10;
+gustOfWind.type = "gustOfWind";
+gustOfWind.speed = 5;
 gustOfWind.width = 10;
 gustOfWind.height = 55;
 gustOfWind.x = 0;
 gustOfWind.y = 0;
-gustOfWind.angle = 0;
 
 module.exports = {
   newMissile: function(x,y,width,mx,my,direction){
     missile = Object.create(gustOfWind);
+    missile.inactive = false;
+    missile.lifeSpan = 30;
+    missile.activeFor = 0;
     missile.x = x+(width/2);
     missile.y = y-15;
     if(direction){
@@ -21,14 +79,20 @@ module.exports = {
   },
   updateMissile: function(missile){
     missile.x += missile.speed;
+    if(missile.activeFor >= missile.lifeSpan){
+      missile.inactive = true;
+    } else {
+      missile.activeFor++;
+    }
   }
 }
 
-},{"../entity":3}],2:[function(require,module,exports){
+},{"../entity":6}],3:[function(require,module,exports){
 var helpers = require('../../Config/helpers');
 var Entity = require('../entity')
 
 var magicMissile = Entity.newEntity();
+magicMissile.type = "magicMissile";
 magicMissile.speed = 10;
 magicMissile.width = 5;
 magicMissile.height = 5;
@@ -66,7 +130,67 @@ module.exports = {
   }
 }
 
-},{"../../Config/helpers":11,"../entity":3}],3:[function(require,module,exports){
+},{"../../Config/helpers":14,"../entity":6}],4:[function(require,module,exports){
+var Entity = require('../entity')
+
+var monster = Entity.newEntity();
+monster.color = '#408';
+monster.speed = 1.2;
+monster.direction = 0;
+monster.state = 'default';
+monster.applyGravity = function(grav){
+  this.y += 5;
+}
+
+module.exports = {
+  newMonster: function(x,y,width,height){
+    newMon = Object.create(monster)
+    newMon.x = x;
+    newMon.y = y;
+    newMon.width = width;
+    newMon.height = height;
+    return newMon;
+  }
+}
+
+},{"../entity":6}],5:[function(require,module,exports){
+var monster = require('./Monster');
+
+var patroler = monster.newMonster(0,0,30,40);
+patroler.update = function(grav){
+  this.applyGravity();
+  if(this.direction){
+    this.x += this.speed;
+    if(this.x >= this.range.x2-this.width){
+      this.x = this.range.x2-this.width;
+      this.direction = 0;
+    }
+  } else {
+    this.x -= this.speed;
+    if(this.x <= this.range.x1){
+      this.x = this.range.x1;
+      this.direction = 1;
+    }
+  }
+}
+
+module.exports = {
+  newPatroler: function(platform){
+    var newPat = Object.create(patroler);
+    newPat.range = {x1:undefined,x2:undefined};
+    newPat.direction = (Math.random() > 0.5) ? 0 : 1;
+    newPat.x = Math.floor(Math.random() * ((platform.x+platform.width-newPat.width) - platform.x) + platform.x);
+    newPat.y = platform.y - newPat.height - 10;
+    newPat.range.x1 = platform.x;
+    newPat.range.x2 = platform.x+platform.width;
+    return newPat;
+  },
+  log: function(){
+    console.log("test");
+  }
+}
+
+},{"./Monster":4}],6:[function(require,module,exports){
 entity = {
   sourceX: 0,
   sourceY: 0,
@@ -83,6 +207,9 @@ entity = {
     return this.x + this.width/2
   },
   draw: function(ctx) {
+    if(this.color){
+      ctx.fillStyle = this.color;
+    }
     ctx.fillRect(this.x,this.y,this.width,this.height);
   }
 }
@@ -94,7 +221,7 @@ module.exports = {
   }
 }
 
-},{}],4:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 var entity = require('./entity');
 var c = require('../Config/canvas');
 var assets = require('../Config/assets');
@@ -119,7 +246,7 @@ module.exports = {
   },
 }
 
-},{"../Config/assets":8,"../Config/canvas":9,"./entity":3}],5:[function(require,module,exports){
+},{"../Config/assets":11,"../Config/canvas":12,"./entity":6}],8:[function(require,module,exports){
 var Entity = require('./entity');
 
 particle = Entity.newEntity();
@@ -200,7 +327,7 @@ module.exports = {
   }
 }
 
-},{"./entity":3}],6:[function(require,module,exports){
+},{"./entity":6}],9:[function(require,module,exports){
 var entity = require('./entity');
 var c = require('../Config/canvas');
 
@@ -343,7 +470,7 @@ module.exports = {
   }
 }
 
-},{"../Config/canvas":9,"./entity":3}],7:[function(require,module,exports){
+},{"../Config/canvas":12,"./entity":6}],10:[function(require,module,exports){
 var entity = require('./entity');
 var keys = require('../Config/keys');
 var c = require('../Config/canvas');
@@ -352,6 +479,7 @@ var helpers = require('../Config/helpers');
 var m = require('../Config/mouse');
 var magicMissile = require('./Attacks/magicMissile');
 var gustOfWind = require('./Attacks/gustOfWind');
+var fireBomb = require('./Attacks/fireBomb');
 
 var upPressed = false;
 var downPressed = false;
@@ -362,6 +490,7 @@ var ePressed = false;
 var attacks = {
   'magicMissile' : magicMissile,
   'gustOfWind' : gustOfWind,
+  'fireBomb' : fireBomb,
 }
 
 player = entity.newEntity();
@@ -386,7 +515,7 @@ player.height = 54;
 player.x = 30;
 player.y = c.height - player.height - 50;
 player.prevY;
-player.attacks = ['magicMissile','gustOfWind']
+player.attacks = ['magicMissile','gustOfWind','fireBomb']
 player.currAttack = 0
 player.missiles = [];
 player.stab = entity.newEntity();
@@ -548,7 +677,8 @@ player.controlMouse = function() {
 player.updateMissiles = function(){
   if(player.missiles.length > 0) {
     for (var i = 0; i < player.missiles.length; i++) {
-      attacks[player.attacks[player.currAttack]].updateMissile(player.missiles[i]);
+      type = player.missiles[i].type;
+      attacks[type].updateMissile(player.missiles[i]);
     }
   }
 }
@@ -625,7 +755,7 @@ module.exports = {
   }
 }
 
-},{"../Config/assets":8,"../Config/canvas":9,"../Config/helpers":11,"../Config/keys":12,"../Config/mouse":13,"./Attacks/gustOfWind":1,"./Attacks/magicMissile":2,"./entity":3}],8:[function(require,module,exports){
+},{"../Config/assets":11,"../Config/canvas":12,"../Config/helpers":14,"../Config/keys":15,"../Config/mouse":16,"./Attacks/fireBomb":1,"./Attacks/gustOfWind":2,"./Attacks/magicMissile":3,"./entity":6}],11:[function(require,module,exports){
 var assets = [];
 var assetsNum = 0;
 
@@ -652,7 +782,7 @@ module.exports = {
   }
 }
 
-},{}],9:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 var canvas = document.getElementById('canvas');
 
 module.exports = {
@@ -662,7 +792,7 @@ module.exports = {
     height: canvas.height,
 };
 
-},{}],10:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 fps = 60;
 gravity = 5;
 
@@ -675,7 +805,7 @@ module.exports = {
   }
 }
 
-},{}],11:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 module.exports = {
   blockRect: function(r1,r2){
     if(r1&&r2){
@@ -754,7 +884,7 @@ module.exports = {
   }
 }
 
-},{}],12:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 var pressedKeys = {};
 var keys = {
   SPACE: 32,
@@ -790,7 +920,7 @@ module.exports = {
   }
 }
 
-},{}],13:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 c = require('./canvas');
 helpers = require('./helpers');
 Screen = require('./screen')
@@ -846,7 +976,7 @@ module.exports = {
   }
 }
 
-},{"./canvas":9,"./helpers":11,"./screen":14}],14:[function(require,module,exports){
+},{"./canvas":12,"./helpers":14,"./screen":17}],17:[function(require,module,exports){
 var c = require('./canvas');
 
 var screen = {
@@ -944,7 +1074,7 @@ module.exports = {
   }
 }
 
-},{"./canvas":9}],15:[function(require,module,exports){
+},{"./canvas":12}],18:[function(require,module,exports){
 var c = require('../Config/canvas');
 var keys = require('../Config/keys');
 var m = require('../Config/mouse');
@@ -954,6 +1084,7 @@ var Screen = require('../Config/screen');
 var Platform = require('../Actors/platform');
 var Ladder = require('../Actors/ladder');
 var Player = require('../Actors/player');
+var Patroler = require('../Actors/Monsters/patroler');
 var Particle = require('../Actors/particles');
 
 var initialised = false;
@@ -967,6 +1098,7 @@ var ledges = [];
 var vanPlatforms = [];
 var expPlatforms = [];
 var lavas = [];
+var monsters = [];
 var ladders = [];
 var particles = [];
 var smokeParts = [];
@@ -980,6 +1112,7 @@ function resetGame(){
   vanPlatforms = [];
   expPlatforms = [];
   lavas = [];
+  monsters = [];
   ladders = [];
   player.missiles = [];
   player = undefined;
@@ -1039,6 +1172,17 @@ function updateState(){
     }
   }
 
+  for(var i = 0; i<monsters.length;i++){
+    monsters[i].applyGravity()
+    monsters[i].update();
+    if(helpers.checkCollision(player,monsters[i])){
+      killPlayer();
+    }
+    if(player.stab.active && helpers.checkCollision(player.stab,monsters[i])){
+      monsters.splice(i,1);
+    }
+  }
+
   for(var i = 0; i<platforms.length;i++){
     helpers.blockRect(player,platforms[i]);
     for(var j = 0; j<player.missiles.length;j++){
@@ -1046,6 +1190,13 @@ function updateState(){
         particles.push(Particle.makeParticles(player.missiles[j].x,player.missiles[j].y));
         player.missiles.splice(j,1);
       }
+    }
+    for(var k = 0; k<monsters.length;k++){
+      if(helpers.checkCollision(monsters[k],platforms[i]) && monsters[k].range.x1 != platforms[i].x){
+        monsters[k].range.x1 = platforms[i].x;
+        monsters[k].range.x2 = platforms[i].x+platforms[i].width;
+      }
+      helpers.blockRect(monsters[k],platforms[i]);
     }
   }
   for(var i = 0; i<ledges.length;i++){
@@ -1090,6 +1241,19 @@ function updateState(){
 
   for(var i = 0; i<player.missiles.length;i++){
     var arrow = player.missiles[i]
+    if(arrow.type === 'gustOfWind' && arrow.inactive){
+      player.missiles.splice(i,1);
+    }
+    for(var j = 0; j<monsters.length;j++){
+      if(helpers.checkCollision(arrow,monsters[j])){
+        if(arrow.type != 'gustOfWind'){
+          player.missiles.splice(i,1);
+          monsters.splice(j,1);
+        } else {
+          helpers.blockRect(monsters[j],arrow)
+        }
+      }
+    }
     if(arrow.x<screen.x || arrow.x>screen.x+screen.width || arrow.y<screen.y || arrow.y>screen.y+screen.height){
       player.missiles.splice(i,1);
     }
@@ -1139,6 +1303,11 @@ function updateState(){
       if(helpers.checkCollision(player.missiles[j],lavas[i])){
         smokeParts.push(Particle.makeSmoke(player.missiles[j].x,player.missiles[j].y));
         player.missiles.splice(j,1);
+      }
+    }
+    for(var k = 0; k<monsters.length;k++){
+      if(helpers.checkCollision(monsters[k],lavas[i])){
+        monsters.splice(k,1);
       }
     }
   }
@@ -1211,7 +1380,14 @@ module.exports = {
     lava1 = Platform.newPlatform(0,world.height-12,world.width,12,'darkOrange');
     lavas.push(lava1);
 
-    ladder1 = Ladder.newLadder(100,2772,204);
+    monster1 = Patroler.newPatroler(platforms[5]);
+    monster2 = Patroler.newPatroler(platforms[2]);
+    monster3 = Patroler.newPatroler(platforms[4]);
+    monster4 = Patroler.newPatroler(platforms[1]);
+    monster5 = Patroler.newPatroler(platforms[0]);
+    monsters.push(monster1,monster2,monster3,monster4,monster5);
+
+    ladder1 = Ladder.newLadder(125,2772,204);
     ladder2 = Ladder.newLadder(450,2596,140);
     ladder3 = Ladder.newLadder(1300,2496,312);
     ladder4 = Ladder.newLadder(1700,2724,252);
@@ -1258,6 +1434,9 @@ module.exports = {
         c.ctx.fillStyle = lavas[i].color;
         lavas[i].draw(c.ctx);
       }
+      for(var i = 0; i<monsters.length;i++){
+        monsters[i].draw(c.ctx);
+      }
       for(var i = 0; i<ladders.length;i++){
         ladders[i].draw(c.ctx);
       }
@@ -1282,11 +1461,13 @@ module.exports = {
         }
       }
       c.ctx.restore()
+      c.ctx.font="14px Arial";
+      c.ctx.fillText("current spell: "+player.attacks[player.currAttack],3,15);
     }
   },
 }
 
-},{"../Actors/ladder":4,"../Actors/particles":5,"../Actors/platform":6,"../Actors/player":7,"../Config/canvas":9,"../Config/config":10,"../Config/helpers":11,"../Config/keys":12,"../Config/mouse":13,"../Config/screen":14}],16:[function(require,module,exports){
+},{"../Actors/Monsters/patroler":5,"../Actors/ladder":7,"../Actors/particles":8,"../Actors/platform":9,"../Actors/player":10,"../Config/canvas":12,"../Config/config":13,"../Config/helpers":14,"../Config/keys":15,"../Config/mouse":16,"../Config/screen":17}],19:[function(require,module,exports){
 var assets = require('../Config/assets');
 var c = require('../Config/canvas');
 
@@ -1356,7 +1537,7 @@ module.exports = {
   },
 }
 
-},{"../Config/assets":8,"../Config/canvas":9}],17:[function(require,module,exports){
+},{"../Config/assets":11,"../Config/canvas":12}],20:[function(require,module,exports){
 var c = require('../Config/canvas');
 var keys = require('../Config/keys');
 var config = require('../Config/config');
@@ -1400,11 +1581,16 @@ module.exports = {
     c.ctx.font="20px Arial";
     c.ctx.fillStyle = '#000';
     c.ctx.textAlign = "left";
-    c.ctx.fillText("press space",20,c.height/2-20);
+    c.ctx.fillText("Welcome to JS Platformer Alpha Build",20,30);
+    c.ctx.fillText("Use the WASD keys to move around",20,60);
+    c.ctx.fillText("You can look around with the mouse",20,90);
+    c.ctx.fillText("Left Click = melee Attack; Right Click = spell",20,120);
+    c.ctx.fillText("Toogle the spells with 'e' key",20,150);
+    c.ctx.fillText("PRESS SPACE",20,c.height/2+40);
   },
 }
 
-},{"../Config/canvas":9,"../Config/config":10,"../Config/keys":12}],18:[function(require,module,exports){
+},{"../Config/canvas":12,"../Config/config":13,"../Config/keys":15}],21:[function(require,module,exports){
 var c = require('./Config/canvas');
 var keys = require('./Config/keys');
 var m = require('./Config/mouse');
@@ -1446,9 +1632,9 @@ module.exports = {
   }
 }
 
-},{"./Config/canvas":9,"./Config/keys":12,"./Config/mouse":13,"./States/gameState":15,"./States/loadingState":16,"./States/menuState":17}],19:[function(require,module,exports){
+},{"./Config/canvas":12,"./Config/keys":15,"./Config/mouse":16,"./States/gameState":18,"./States/loadingState":19,"./States/menuState":20}],22:[function(require,module,exports){
 var game = require('./game');
 
 game.init();
 
-},{"./game":18}]},{},[19]);
+},{"./game":21}]},{},[22]);

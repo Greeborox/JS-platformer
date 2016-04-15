@@ -7,6 +7,7 @@ var Screen = require('../Config/screen');
 var Platform = require('../Actors/platform');
 var Ladder = require('../Actors/ladder');
 var Player = require('../Actors/player');
+var Patroler = require('../Actors/Monsters/patroler');
 var Particle = require('../Actors/particles');
 
 var initialised = false;
@@ -20,6 +21,7 @@ var ledges = [];
 var vanPlatforms = [];
 var expPlatforms = [];
 var lavas = [];
+var monsters = [];
 var ladders = [];
 var particles = [];
 var smokeParts = [];
@@ -33,6 +35,7 @@ function resetGame(){
   vanPlatforms = [];
   expPlatforms = [];
   lavas = [];
+  monsters = [];
   ladders = [];
   player.missiles = [];
   player = undefined;
@@ -92,6 +95,17 @@ function updateState(){
     }
   }
 
+  for(var i = 0; i<monsters.length;i++){
+    monsters[i].applyGravity()
+    monsters[i].update();
+    if(helpers.checkCollision(player,monsters[i])){
+      killPlayer();
+    }
+    if(player.stab.active && helpers.checkCollision(player.stab,monsters[i])){
+      monsters.splice(i,1);
+    }
+  }
+
   for(var i = 0; i<platforms.length;i++){
     helpers.blockRect(player,platforms[i]);
     for(var j = 0; j<player.missiles.length;j++){
@@ -99,6 +113,13 @@ function updateState(){
         particles.push(Particle.makeParticles(player.missiles[j].x,player.missiles[j].y));
         player.missiles.splice(j,1);
       }
+    }
+    for(var k = 0; k<monsters.length;k++){
+      if(helpers.checkCollision(monsters[k],platforms[i]) && monsters[k].range.x1 != platforms[i].x){
+        monsters[k].range.x1 = platforms[i].x;
+        monsters[k].range.x2 = platforms[i].x+platforms[i].width;
+      }
+      helpers.blockRect(monsters[k],platforms[i]);
     }
   }
   for(var i = 0; i<ledges.length;i++){
@@ -143,6 +164,19 @@ function updateState(){
 
   for(var i = 0; i<player.missiles.length;i++){
     var arrow = player.missiles[i]
+    if(arrow.type === 'gustOfWind' && arrow.inactive){
+      player.missiles.splice(i,1);
+    }
+    for(var j = 0; j<monsters.length;j++){
+      if(helpers.checkCollision(arrow,monsters[j])){
+        if(arrow.type != 'gustOfWind'){
+          player.missiles.splice(i,1);
+          monsters.splice(j,1);
+        } else {
+          helpers.blockRect(monsters[j],arrow)
+        }
+      }
+    }
     if(arrow.x<screen.x || arrow.x>screen.x+screen.width || arrow.y<screen.y || arrow.y>screen.y+screen.height){
       player.missiles.splice(i,1);
     }
@@ -192,6 +226,11 @@ function updateState(){
       if(helpers.checkCollision(player.missiles[j],lavas[i])){
         smokeParts.push(Particle.makeSmoke(player.missiles[j].x,player.missiles[j].y));
         player.missiles.splice(j,1);
+      }
+    }
+    for(var k = 0; k<monsters.length;k++){
+      if(helpers.checkCollision(monsters[k],lavas[i])){
+        monsters.splice(k,1);
       }
     }
   }
@@ -264,7 +303,14 @@ module.exports = {
     lava1 = Platform.newPlatform(0,world.height-12,world.width,12,'darkOrange');
     lavas.push(lava1);
 
-    ladder1 = Ladder.newLadder(100,2772,204);
+    monster1 = Patroler.newPatroler(platforms[5]);
+    monster2 = Patroler.newPatroler(platforms[2]);
+    monster3 = Patroler.newPatroler(platforms[4]);
+    monster4 = Patroler.newPatroler(platforms[1]);
+    monster5 = Patroler.newPatroler(platforms[0]);
+    monsters.push(monster1,monster2,monster3,monster4,monster5);
+
+    ladder1 = Ladder.newLadder(125,2772,204);
     ladder2 = Ladder.newLadder(450,2596,140);
     ladder3 = Ladder.newLadder(1300,2496,312);
     ladder4 = Ladder.newLadder(1700,2724,252);
@@ -311,6 +357,9 @@ module.exports = {
         c.ctx.fillStyle = lavas[i].color;
         lavas[i].draw(c.ctx);
       }
+      for(var i = 0; i<monsters.length;i++){
+        monsters[i].draw(c.ctx);
+      }
       for(var i = 0; i<ladders.length;i++){
         ladders[i].draw(c.ctx);
       }
@@ -335,6 +384,8 @@ module.exports = {
         }
       }
       c.ctx.restore()
+      c.ctx.font="14px Arial";
+      c.ctx.fillText("current spell: "+player.attacks[player.currAttack],3,15);
     }
   },
 }

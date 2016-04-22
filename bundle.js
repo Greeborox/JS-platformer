@@ -1,4 +1,36 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+var Entity = require('../entity')
+
+var explosion = Entity.newEntity();
+explosion.width = 100;
+explosion.height = 100;
+explosion.x = 0;
+explosion.y = 0;
+explosion.lifeSpan = 20;
+explosion.liveFor = 0;
+explosion.remove = false;
+explosion.color = '#D64413'
+
+explosion.update = function(){
+  if(this.liveFor < this.lifeSpan){
+    this.liveFor++;
+  } else {
+    this.remove = true;
+  }
+}
+
+module.exports = {
+  newExplosion: function(x,y){
+    var newExplo = Object.create(explosion);
+    newExplo.x = x-newExplo.width/2;
+    newExplo.y = y-newExplo.height/2;
+    newExplo.liveFor = 0;
+    newExplo.remove = false;
+    return newExplo;
+  }
+}
+
+},{"../entity":7}],2:[function(require,module,exports){
 var helpers = require('../../Config/helpers');
 var Entity = require('../entity')
 
@@ -10,6 +42,7 @@ fireBomb.width = 15;
 fireBomb.height = 15;
 fireBomb.x = 0;
 fireBomb.y = 0;
+fireBomb.power = 100;
 
 module.exports = {
   newMissile: function(x,y,width,mx,my,direction){
@@ -53,7 +86,7 @@ module.exports = {
   }
 }
 
-},{"../../Config/helpers":14,"../entity":6}],2:[function(require,module,exports){
+},{"../../Config/helpers":15,"../entity":7}],3:[function(require,module,exports){
 var Entity = require('../entity')
 
 var gustOfWind = Entity.newEntity();
@@ -87,7 +120,7 @@ module.exports = {
   }
 }
 
-},{"../entity":6}],3:[function(require,module,exports){
+},{"../entity":7}],4:[function(require,module,exports){
 var helpers = require('../../Config/helpers');
 var Entity = require('../entity')
 
@@ -99,6 +132,7 @@ magicMissile.height = 5;
 magicMissile.x = 0;
 magicMissile.y = 0;
 magicMissile.angle = 0;
+magicMissile.power = 40;
 
 module.exports = {
   newMissile: function(x,y,width,mx,my,direction){
@@ -130,16 +164,42 @@ module.exports = {
   }
 }
 
-},{"../../Config/helpers":14,"../entity":6}],4:[function(require,module,exports){
+},{"../../Config/helpers":15,"../entity":7}],5:[function(require,module,exports){
 var Entity = require('../entity')
 
 var monster = Entity.newEntity();
 monster.color = '#408';
 monster.speed = 1.2;
+monster.hp = 100;
 monster.direction = 0;
+monster.stagger = 0;
 monster.state = 'default';
+monster.dead = false;
+monster.remove = false;
 monster.applyGravity = function(grav){
-  this.y += 5;
+  this.y += 8;
+}
+
+monster.checkLife = function(){
+  if(this.hp <= 0 && !this.dead) {
+    this.dead = true;
+  }
+  if(this.dead) {
+    this.hp = 100;
+    this.height -= 1;
+    if(this.height === 0) {
+      this.remove = true;
+    }
+  }
+}
+
+monster.draw = function(ctx) {
+  if(this.color){
+    ctx.fillStyle = this.color;
+  }
+  ctx.globalAlpha=this.hp/100;
+  ctx.fillRect(this.x,this.y,this.width,this.height);
+  ctx.globalAlpha=1;
 }
 
 module.exports = {
@@ -153,23 +213,30 @@ module.exports = {
   }
 }
 
-},{"../entity":6}],5:[function(require,module,exports){
+},{"../entity":7}],6:[function(require,module,exports){
 var monster = require('./Monster');
 
 var patroler = monster.newMonster(0,0,30,40);
 patroler.update = function(grav){
   this.applyGravity();
-  if(this.direction){
-    this.x += this.speed;
-    if(this.x >= this.range.x2-this.width){
-      this.x = this.range.x2-this.width;
-      this.direction = 0;
-    }
-  } else {
-    this.x -= this.speed;
-    if(this.x <= this.range.x1){
-      this.x = this.range.x1;
-      this.direction = 1;
+  this.checkLife();
+  if(!this.dead){
+    if(!this.stagger){
+      if(this.direction){
+        this.x += this.speed;
+        if(this.x >= this.range.x2-this.width){
+          this.x = this.range.x2-this.width;
+          this.direction = 0;
+        }
+      } else {
+        this.x -= this.speed;
+        if(this.x <= this.range.x1){
+          this.x = this.range.x1;
+          this.direction = 1;
+        }
+      }
+    } else {
+      this.stagger--;
     }
   }
 }
@@ -178,6 +245,7 @@ module.exports = {
   newPatroler: function(platform){
     var newPat = Object.create(patroler);
     newPat.range = {x1:undefined,x2:undefined};
+    newPat.hp = 100;
     newPat.direction = (Math.random() > 0.5) ? 0 : 1;
     newPat.x = Math.floor(Math.random() * ((platform.x+platform.width-newPat.width) - platform.x) + platform.x);
     newPat.y = platform.y - newPat.height - 10;
@@ -190,7 +258,7 @@ module.exports = {
   }
 }
 
-},{"./Monster":4}],6:[function(require,module,exports){
+},{"./Monster":5}],7:[function(require,module,exports){
 entity = {
   sourceX: 0,
   sourceY: 0,
@@ -221,7 +289,7 @@ module.exports = {
   }
 }
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 var entity = require('./entity');
 var c = require('../Config/canvas');
 var assets = require('../Config/assets');
@@ -246,7 +314,7 @@ module.exports = {
   },
 }
 
-},{"../Config/assets":11,"../Config/canvas":12,"./entity":6}],8:[function(require,module,exports){
+},{"../Config/assets":12,"../Config/canvas":13,"./entity":7}],9:[function(require,module,exports){
 var Entity = require('./entity');
 
 particle = Entity.newEntity();
@@ -327,7 +395,7 @@ module.exports = {
   }
 }
 
-},{"./entity":6}],9:[function(require,module,exports){
+},{"./entity":7}],10:[function(require,module,exports){
 var entity = require('./entity');
 var c = require('../Config/canvas');
 
@@ -470,7 +538,7 @@ module.exports = {
   }
 }
 
-},{"../Config/canvas":12,"./entity":6}],10:[function(require,module,exports){
+},{"../Config/canvas":13,"./entity":7}],11:[function(require,module,exports){
 var entity = require('./entity');
 var keys = require('../Config/keys');
 var c = require('../Config/canvas');
@@ -755,7 +823,7 @@ module.exports = {
   }
 }
 
-},{"../Config/assets":11,"../Config/canvas":12,"../Config/helpers":14,"../Config/keys":15,"../Config/mouse":16,"./Attacks/fireBomb":1,"./Attacks/gustOfWind":2,"./Attacks/magicMissile":3,"./entity":6}],11:[function(require,module,exports){
+},{"../Config/assets":12,"../Config/canvas":13,"../Config/helpers":15,"../Config/keys":16,"../Config/mouse":17,"./Attacks/fireBomb":2,"./Attacks/gustOfWind":3,"./Attacks/magicMissile":4,"./entity":7}],12:[function(require,module,exports){
 var assets = [];
 var assetsNum = 0;
 
@@ -782,7 +850,7 @@ module.exports = {
   }
 }
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 var canvas = document.getElementById('canvas');
 
 module.exports = {
@@ -792,7 +860,7 @@ module.exports = {
     height: canvas.height,
 };
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 fps = 60;
 gravity = 5;
 
@@ -805,7 +873,7 @@ module.exports = {
   }
 }
 
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 module.exports = {
   blockRect: function(r1,r2){
     if(r1&&r2){
@@ -884,7 +952,7 @@ module.exports = {
   }
 }
 
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 var pressedKeys = {};
 var keys = {
   SPACE: 32,
@@ -920,7 +988,7 @@ module.exports = {
   }
 }
 
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 c = require('./canvas');
 helpers = require('./helpers');
 Screen = require('./screen')
@@ -976,7 +1044,7 @@ module.exports = {
   }
 }
 
-},{"./canvas":12,"./helpers":14,"./screen":17}],17:[function(require,module,exports){
+},{"./canvas":13,"./helpers":15,"./screen":18}],18:[function(require,module,exports){
 var c = require('./canvas');
 
 var screen = {
@@ -1074,7 +1142,7 @@ module.exports = {
   }
 }
 
-},{"./canvas":12}],18:[function(require,module,exports){
+},{"./canvas":13}],19:[function(require,module,exports){
 var c = require('../Config/canvas');
 var keys = require('../Config/keys');
 var m = require('../Config/mouse');
@@ -1084,6 +1152,7 @@ var Screen = require('../Config/screen');
 var Platform = require('../Actors/platform');
 var Ladder = require('../Actors/ladder');
 var Player = require('../Actors/player');
+var Explosion = require('../Actors/Attacks/explosion');
 var Patroler = require('../Actors/Monsters/patroler');
 var Particle = require('../Actors/particles');
 
@@ -1102,6 +1171,7 @@ var monsters = [];
 var ladders = [];
 var particles = [];
 var smokeParts = [];
+var explosions = [];
 var player = undefined;
 
 function resetGame(){
@@ -1115,6 +1185,7 @@ function resetGame(){
   monsters = [];
   ladders = [];
   player.missiles = [];
+  explosions = [];
   player = undefined;
   changeState = true;
   nextState = "menuState";
@@ -1173,13 +1244,20 @@ function updateState(){
   }
 
   for(var i = 0; i<monsters.length;i++){
-    monsters[i].applyGravity()
     monsters[i].update();
+    if(monsters[i].remove){
+      monsters.splice(i,1);
+    }
     if(helpers.checkCollision(player,monsters[i])){
-      killPlayer();
+      if(!monsters[i].dead){
+        killPlayer();
+      }
     }
     if(player.stab.active && helpers.checkCollision(player.stab,monsters[i])){
-      monsters.splice(i,1);
+      monsters[i].hp -= 5;
+      if(monsters[i].stagger < 15) {
+        monsters[i].stagger = 15;
+      }
     }
   }
 
@@ -1187,8 +1265,13 @@ function updateState(){
     helpers.blockRect(player,platforms[i]);
     for(var j = 0; j<player.missiles.length;j++){
       if(helpers.checkCollision(player.missiles[j],platforms[i])){
-        particles.push(Particle.makeParticles(player.missiles[j].x,player.missiles[j].y));
-        player.missiles.splice(j,1);
+        if(player.missiles[j].type === 'fireBomb'){
+          explosions.push(Explosion.newExplosion(player.missiles[j].centerX(),player.missiles[j].centerY()));
+          player.missiles.splice(j,1);
+        } else {
+          particles.push(Particle.makeParticles(player.missiles[j].x,player.missiles[j].y));
+          player.missiles.splice(j,1);
+        }
       }
     }
     for(var k = 0; k<monsters.length;k++){
@@ -1203,8 +1286,13 @@ function updateState(){
     helpers.blockLedge(player,ledges[i]);
     for(var j = 0; j<player.missiles.length;j++){
       if(helpers.checkCollision(player.missiles[j],ledges[i])){
-        particles.push(Particle.makeParticles(player.missiles[j].x,player.missiles[j].y));
-        player.missiles.splice(j,1);
+        if(player.missiles[j].type === 'fireBomb'){
+          explosions.push(Explosion.newExplosion(player.missiles[j].centerX(),player.missiles[j].centerY()));
+          player.missiles.splice(j,1);
+        } else {
+          particles.push(Particle.makeParticles(player.missiles[j].x,player.missiles[j].y));
+          player.missiles.splice(j,1);
+        }
       }
     }
   }
@@ -1215,8 +1303,13 @@ function updateState(){
     }
     for(var j = 0; j<player.missiles.length;j++){
       if(helpers.checkCollision(player.missiles[j],vanPlatforms[i]) && vanPlatforms[i].opacity > 0.3){
-        particles.push(Particle.makeParticles(player.missiles[j].x,player.missiles[j].y));
-        player.missiles.splice(j,1);
+        if(player.missiles[j].type === 'fireBomb'){
+          explosions.push(Explosion.newExplosion(player.missiles[j].centerX(),player.missiles[j].centerY()));
+          player.missiles.splice(j,1);
+        } else {
+          particles.push(Particle.makeParticles(player.missiles[j].x,player.missiles[j].y));
+          player.missiles.splice(j,1);
+        }
       }
     }
   }
@@ -1232,8 +1325,13 @@ function updateState(){
     }
     for(var j = 0; j<player.missiles.length;j++){
       if(helpers.checkCollision(player.missiles[j],expPlatforms[i])){
-        particles.push(Particle.makeParticles(player.missiles[j].x,player.missiles[j].y));
-        player.missiles.splice(j,1);
+        if(player.missiles[j].type === 'fireBomb'){
+          explosions.push(Explosion.newExplosion(player.missiles[j].centerX(),player.missiles[j].centerY()));
+          player.missiles.splice(j,1);
+        } else {
+          particles.push(Particle.makeParticles(player.missiles[j].x,player.missiles[j].y));
+          player.missiles.splice(j,1);
+        };
       }
     }
   }
@@ -1246,9 +1344,15 @@ function updateState(){
     }
     for(var j = 0; j<monsters.length;j++){
       if(helpers.checkCollision(arrow,monsters[j])){
-        if(arrow.type != 'gustOfWind'){
+        if(arrow.type === 'magicMissile'){
           player.missiles.splice(i,1);
-          monsters.splice(j,1);
+          monsters[j].hp -= arrow.power;
+          if(monsters[j].stagger < 10) {
+            monsters[j].stagger = 10;
+          }
+        } else if(arrow.type === 'fireBomb'){
+          explosions.push(Explosion.newExplosion(arrow.centerX(),arrow.centerY()));
+          player.missiles.splice(i,1);
         } else {
           helpers.blockRect(monsters[j],arrow)
         }
@@ -1289,8 +1393,13 @@ function updateState(){
     helpers.blockRect(player,movPlatforms[i]);
     for(var j = 0; j<player.missiles.length;j++){
       if(helpers.checkCollision(player.missiles[j],movPlatforms[i])){
-        particles.push(Particle.makeParticles(player.missiles[j].x,player.missiles[j].y));
-        player.missiles.splice(j,1);
+        if(player.missiles[j].type === 'fireBomb'){
+          explosions.push(Explosion.newExplosion(player.missiles[j].centerX(),player.missiles[j].centerY()));
+          player.missiles.splice(j,1);
+        } else {
+          particles.push(Particle.makeParticles(player.missiles[j].x,player.missiles[j].y));
+          player.missiles.splice(j,1);
+        }
       }
     }
   }
@@ -1309,6 +1418,20 @@ function updateState(){
       if(helpers.checkCollision(monsters[k],lavas[i])){
         monsters.splice(k,1);
       }
+    }
+  }
+  for(var i = 0; i<explosions.length;i++){
+    explosions[i].update();
+    if(helpers.checkCollision(explosions[i],player)){
+      killPlayer();
+    }
+    for(var j = 0; j<monsters.length;j++){
+      if(helpers.checkCollision(explosions[i],monsters[j])){
+        monsters[j].dead = true;
+      }
+    }
+    if(explosions[i].remove){
+      explosions.splice(i,1);
     }
   }
 };
@@ -1387,7 +1510,7 @@ module.exports = {
     monster5 = Patroler.newPatroler(platforms[0]);
     monsters.push(monster1,monster2,monster3,monster4,monster5);
 
-    ladder1 = Ladder.newLadder(125,2772,204);
+    ladder1 = Ladder.newLadder(45,2772,204);
     ladder2 = Ladder.newLadder(450,2596,140);
     ladder3 = Ladder.newLadder(1300,2496,312);
     ladder4 = Ladder.newLadder(1700,2724,252);
@@ -1460,6 +1583,9 @@ module.exports = {
           }
         }
       }
+      for(var i = 0; i < explosions.length; i++){
+        explosions[i].draw(c.ctx);
+      }
       c.ctx.restore()
       c.ctx.font="14px Arial";
       c.ctx.fillText("current spell: "+player.attacks[player.currAttack],3,15);
@@ -1467,7 +1593,7 @@ module.exports = {
   },
 }
 
-},{"../Actors/Monsters/patroler":5,"../Actors/ladder":7,"../Actors/particles":8,"../Actors/platform":9,"../Actors/player":10,"../Config/canvas":12,"../Config/config":13,"../Config/helpers":14,"../Config/keys":15,"../Config/mouse":16,"../Config/screen":17}],19:[function(require,module,exports){
+},{"../Actors/Attacks/explosion":1,"../Actors/Monsters/patroler":6,"../Actors/ladder":8,"../Actors/particles":9,"../Actors/platform":10,"../Actors/player":11,"../Config/canvas":13,"../Config/config":14,"../Config/helpers":15,"../Config/keys":16,"../Config/mouse":17,"../Config/screen":18}],20:[function(require,module,exports){
 var assets = require('../Config/assets');
 var c = require('../Config/canvas');
 
@@ -1537,7 +1663,7 @@ module.exports = {
   },
 }
 
-},{"../Config/assets":11,"../Config/canvas":12}],20:[function(require,module,exports){
+},{"../Config/assets":12,"../Config/canvas":13}],21:[function(require,module,exports){
 var c = require('../Config/canvas');
 var keys = require('../Config/keys');
 var config = require('../Config/config');
@@ -1590,7 +1716,7 @@ module.exports = {
   },
 }
 
-},{"../Config/canvas":12,"../Config/config":13,"../Config/keys":15}],21:[function(require,module,exports){
+},{"../Config/canvas":13,"../Config/config":14,"../Config/keys":16}],22:[function(require,module,exports){
 var c = require('./Config/canvas');
 var keys = require('./Config/keys');
 var m = require('./Config/mouse');
@@ -1632,9 +1758,9 @@ module.exports = {
   }
 }
 
-},{"./Config/canvas":12,"./Config/keys":15,"./Config/mouse":16,"./States/gameState":18,"./States/loadingState":19,"./States/menuState":20}],22:[function(require,module,exports){
+},{"./Config/canvas":13,"./Config/keys":16,"./Config/mouse":17,"./States/gameState":19,"./States/loadingState":20,"./States/menuState":21}],23:[function(require,module,exports){
 var game = require('./game');
 
 game.init();
 
-},{"./game":21}]},{},[22]);
+},{"./game":22}]},{},[23]);

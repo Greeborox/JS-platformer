@@ -9,6 +9,7 @@ magicMissile.height = 5;
 magicMissile.x = 0;
 magicMissile.y = 0;
 magicMissile.angle = 0;
+magicMissile.power = 40;
 
 module.exports = {
   newMissile: function(x,y,width,mx,my,direction){

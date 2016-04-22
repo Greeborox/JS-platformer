@@ -8,3 +8,7 @@ Known Bugs:
 - when player is idle while on the ladder for some time and finally gets off he is falling with great velocity.
 - when game state is closed, the arrows, are not removed from the game.
 - FIXED! when changing spell type, while shooting, the exisitng missiles start behaving like the ones player has just changed to.
+
+Things I need to do:
+
+- move platform types into separate modules

@@ -7,6 +7,7 @@ var Screen = require('../Config/screen');
 var Platform = require('../Actors/platform');
 var Ladder = require('../Actors/ladder');
 var Player = require('../Actors/player');
+var Explosion = require('../Actors/Attacks/explosion');
 var Patroler = require('../Actors/Monsters/patroler');
 var Particle = require('../Actors/particles');
 
@@ -25,6 +26,7 @@ var monsters = [];
 var ladders = [];
 var particles = [];
 var smokeParts = [];
+var explosions = [];
 var player = undefined;
 
 function resetGame(){
@@ -38,6 +40,7 @@ function resetGame(){
   monsters = [];
   ladders = [];
   player.missiles = [];
+  explosions = [];
   player = undefined;
   changeState = true;
   nextState = "menuState";
@@ -96,13 +99,20 @@ function updateState(){
   }
 
   for(var i = 0; i<monsters.length;i++){
-    monsters[i].applyGravity()
     monsters[i].update();
+    if(monsters[i].remove){
+      monsters.splice(i,1);
+    }
     if(helpers.checkCollision(player,monsters[i])){
-      killPlayer();
+      if(!monsters[i].dead){
+        killPlayer();
+      }
     }
     if(player.stab.active && helpers.checkCollision(player.stab,monsters[i])){
-      monsters.splice(i,1);
+      monsters[i].hp -= 5;
+      if(monsters[i].stagger < 15) {
+        monsters[i].stagger = 15;
+      }
     }
   }
 
@@ -110,8 +120,13 @@ function updateState(){
     helpers.blockRect(player,platforms[i]);
     for(var j = 0; j<player.missiles.length;j++){
       if(helpers.checkCollision(player.missiles[j],platforms[i])){
-        particles.push(Particle.makeParticles(player.missiles[j].x,player.missiles[j].y));
-        player.missiles.splice(j,1);
+        if(player.missiles[j].type === 'fireBomb'){
+          explosions.push(Explosion.newExplosion(player.missiles[j].centerX(),player.missiles[j].centerY()));
+          player.missiles.splice(j,1);
+        } else {
+          particles.push(Particle.makeParticles(player.missiles[j].x,player.missiles[j].y));
+          player.missiles.splice(j,1);
+        }
       }
     }
     for(var k = 0; k<monsters.length;k++){
@@ -126,8 +141,13 @@ function updateState(){
     helpers.blockLedge(player,ledges[i]);
     for(var j = 0; j<player.missiles.length;j++){
       if(helpers.checkCollision(player.missiles[j],ledges[i])){
-        particles.push(Particle.makeParticles(player.missiles[j].x,player.missiles[j].y));
-        player.missiles.splice(j,1);
+        if(player.missiles[j].type === 'fireBomb'){
+          explosions.push(Explosion.newExplosion(player.missiles[j].centerX(),player.missiles[j].centerY()));
+          player.missiles.splice(j,1);
+        } else {
+          particles.push(Particle.makeParticles(player.missiles[j].x,player.missiles[j].y));
+          player.missiles.splice(j,1);
+        }
       }
     }
   }
@@ -138,8 +158,13 @@ function updateState(){
     }
     for(var j = 0; j<player.missiles.length;j++){
       if(helpers.checkCollision(player.missiles[j],vanPlatforms[i]) && vanPlatforms[i].opacity > 0.3){
-        particles.push(Particle.makeParticles(player.missiles[j].x,player.missiles[j].y));
-        player.missiles.splice(j,1);
+        if(player.missiles[j].type === 'fireBomb'){
+          explosions.push(Explosion.newExplosion(player.missiles[j].centerX(),player.missiles[j].centerY()));
+          player.missiles.splice(j,1);
+        } else {
+          particles.push(Particle.makeParticles(player.missiles[j].x,player.missiles[j].y));
+          player.missiles.splice(j,1);
+        }
       }
     }
   }
@@ -155,8 +180,13 @@ function updateState(){
     }
     for(var j = 0; j<player.missiles.length;j++){
       if(helpers.checkCollision(player.missiles[j],expPlatforms[i])){
-        particles.push(Particle.makeParticles(player.missiles[j].x,player.missiles[j].y));
-        player.missiles.splice(j,1);
+        if(player.missiles[j].type === 'fireBomb'){
+          explosions.push(Explosion.newExplosion(player.missiles[j].centerX(),player.missiles[j].centerY()));
+          player.missiles.splice(j,1);
+        } else {
+          particles.push(Particle.makeParticles(player.missiles[j].x,player.missiles[j].y));
+          player.missiles.splice(j,1);
+        };
       }
     }
   }
@@ -169,9 +199,15 @@ function updateState(){
     }
     for(var j = 0; j<monsters.length;j++){
       if(helpers.checkCollision(arrow,monsters[j])){
-        if(arrow.type != 'gustOfWind'){
+        if(arrow.type === 'magicMissile'){
           player.missiles.splice(i,1);
-          monsters.splice(j,1);
+          monsters[j].hp -= arrow.power;
+          if(monsters[j].stagger < 10) {
+            monsters[j].stagger = 10;
+          }
+        } else if(arrow.type === 'fireBomb'){
+          explosions.push(Explosion.newExplosion(arrow.centerX(),arrow.centerY()));
+          player.missiles.splice(i,1);
         } else {
           helpers.blockRect(monsters[j],arrow)
         }
@@ -212,8 +248,13 @@ function updateState(){
     helpers.blockRect(player,movPlatforms[i]);
     for(var j = 0; j<player.missiles.length;j++){
       if(helpers.checkCollision(player.missiles[j],movPlatforms[i])){
-        particles.push(Particle.makeParticles(player.missiles[j].x,player.missiles[j].y));
-        player.missiles.splice(j,1);
+        if(player.missiles[j].type === 'fireBomb'){
+          explosions.push(Explosion.newExplosion(player.missiles[j].centerX(),player.missiles[j].centerY()));
+          player.missiles.splice(j,1);
+        } else {
+          particles.push(Particle.makeParticles(player.missiles[j].x,player.missiles[j].y));
+          player.missiles.splice(j,1);
+        }
       }
     }
   }
@@ -232,6 +273,20 @@ function updateState(){
       if(helpers.checkCollision(monsters[k],lavas[i])){
         monsters.splice(k,1);
       }
+    }
+  }
+  for(var i = 0; i<explosions.length;i++){
+    explosions[i].update();
+    if(helpers.checkCollision(explosions[i],player)){
+      killPlayer();
+    }
+    for(var j = 0; j<monsters.length;j++){
+      if(helpers.checkCollision(explosions[i],monsters[j])){
+        monsters[j].dead = true;
+      }
+    }
+    if(explosions[i].remove){
+      explosions.splice(i,1);
     }
   }
 };
@@ -310,7 +365,7 @@ module.exports = {
     monster5 = Patroler.newPatroler(platforms[0]);
     monsters.push(monster1,monster2,monster3,monster4,monster5);
 
-    ladder1 = Ladder.newLadder(125,2772,204);
+    ladder1 = Ladder.newLadder(45,2772,204);
     ladder2 = Ladder.newLadder(450,2596,140);
     ladder3 = Ladder.newLadder(1300,2496,312);
     ladder4 = Ladder.newLadder(1700,2724,252);
@@ -382,6 +437,9 @@ module.exports = {
             smokeParts[i][j].draw(c.ctx);
           }
         }
+      }
+      for(var i = 0; i < explosions.length; i++){
+        explosions[i].draw(c.ctx);
       }
       c.ctx.restore()
       c.ctx.font="14px Arial";

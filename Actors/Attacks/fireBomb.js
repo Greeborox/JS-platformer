@@ -9,6 +9,7 @@ fireBomb.width = 15;
 fireBomb.height = 15;
 fireBomb.x = 0;
 fireBomb.y = 0;
+fireBomb.power = 100;
 
 module.exports = {
   newMissile: function(x,y,width,mx,my,direction){

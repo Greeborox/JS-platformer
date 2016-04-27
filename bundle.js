@@ -823,7 +823,7 @@ module.exports = {
   }
 }
 
-},{"../Config/assets":12,"../Config/canvas":13,"../Config/helpers":15,"../Config/keys":16,"../Config/mouse":17,"./Attacks/fireBomb":2,"./Attacks/gustOfWind":3,"./Attacks/magicMissile":4,"./entity":7}],12:[function(require,module,exports){
+},{"../Config/assets":12,"../Config/canvas":13,"../Config/helpers":15,"../Config/keys":16,"../Config/mouse":18,"./Attacks/fireBomb":2,"./Attacks/gustOfWind":3,"./Attacks/magicMissile":4,"./entity":7}],12:[function(require,module,exports){
 var assets = [];
 var assetsNum = 0;
 
@@ -863,6 +863,7 @@ module.exports = {
 },{}],14:[function(require,module,exports){
 fps = 60;
 gravity = 5;
+currLevel = 1;
 
 module.exports = {
   getFPS: function(){
@@ -870,6 +871,12 @@ module.exports = {
   },
   getGravity: function(){
     return gravity;
+  },
+  getLevel: function(){
+    return currLevel;
+  },
+  setLevel: function(lvl){
+    currLevel = lvl;
   }
 }
 
@@ -989,6 +996,246 @@ module.exports = {
 }
 
 },{}],17:[function(require,module,exports){
+var levels = [
+  {
+    "world": {
+      "width": 4000,
+      "height": 3000,
+    },
+    "platforms": [
+      {
+        "x": 270,
+        "y": 2608,
+        "width": 228,
+        "height": 12,
+      },
+      {
+        "x": 430,
+        "y": 2738,
+        "width": 128,
+        "height": 12,
+      },
+      {
+        "x": 40,
+        "y": 2788,
+        "width": 128,
+        "height": 12,
+      },
+      {
+        "x": 0,
+        "y": 2976,
+        "width": 200,
+        "height": 12,
+      },
+      {
+        "x": 1650,
+        "y": 2976,
+        "width": 300,
+        "height": 12,
+      },
+      {
+        "x": 2350,
+        "y": 2976,
+        "width": 1400,
+        "height": 12,
+      },
+      {
+        "x": 570,
+        "y": 2508,
+        "width": 268,
+        "height": 12,
+      },
+      {
+        "x": 1270,
+        "y": 2508,
+        "width": 68,
+        "height": 12,
+      },
+      {
+        "x": 1290,
+        "y": 2808,
+        "width": 264,
+        "height": 12,
+      },
+      {
+        "x": 1670,
+        "y": 2738,
+        "width": 164,
+        "height": 12,
+      },
+    ],
+    "ledges": [
+      {
+        "x": 100,
+        "y": 2588,
+        "width": 100,
+        "height": 12,
+        "color": "red",
+      },
+      {
+        "x": 100,
+        "y": 2488,
+        "width": 100,
+        "height": 12,
+        "color": "red",
+      },
+    ],
+    "expPlatforms": [
+      {
+        "x": 2000,
+        "y": 2938,
+        "width": 88,
+        "height": 12,
+        "color": "#8b0000",
+      },
+      {
+        "x": 2200,
+        "y": 2938,
+        "width": 88,
+        "height": 12,
+        "color": "#8b0000",
+      },
+    ],
+    "vanPlatforms": [
+      {
+        "x": 270,
+        "y": 2838,
+        "width": 88,
+        "height": 12,
+        "color": "magenta",
+      },
+      {
+        "x": 990,
+        "y": 2552,
+        "width": 168,
+        "height": 12,
+        "color": "magenta",
+      },
+    ],
+    "movPlatforms": [
+      {
+        "x": 400,
+        "y": 3000-36,
+        "width": 70,
+        "height": 12,
+        "color": "darkGreen",
+        "minY": 3000-12,
+        "maxY": 3000-160,
+        "speed": 0.5,
+      },
+      {
+        "x": 570,
+        "y": 3000-80,
+        "width": 70,
+        "height": 12,
+        "color": "darkGreen",
+        "minY": 3000-12,
+        "maxY": 3000-160,
+        "speed": 1
+      },
+      {
+        "x": 740,
+        "y": 3000-12,
+        "width": 70,
+        "height": 12,
+        "color": "darkGreen",
+        "minY": 3000-12,
+        "maxY": 3000-160,
+        "speed": 1.5
+      },
+      {
+        "x": 910,
+        "y": 3000-100,
+        "width": 70,
+        "height": 12,
+        "color": "darkGreen",
+        "minY": 3000-12,
+        "maxY": 3000-160,
+        "speed": 0.5,
+      },
+      {
+        "x": 1080,
+        "y": 3000-40,
+        "width": 70,
+        "height": 12,
+        "color": "darkGreen",
+        "minY": 3000-12,
+        "maxY": 3000-160,
+        "speed": 0.2
+      },
+      {
+        "x": 1250,
+        "y": 3000-20,
+        "width": 70,
+        "height": 12,
+        "color": "darkGreen",
+        "minY": 0,
+        "maxY": 0,
+        "speed": 0.7
+      },
+    ],
+    "lavas": [
+      {
+        "x": 0,
+        "y": 3000-12,
+        "width": 4000,
+        "height": 12,
+        "color": "darkOrange",
+      },
+    ],
+    "monstersPatrolers": [
+      {
+        "platformIndex": 5
+      },
+      {
+        "platformIndex": 2
+      },
+      {
+        "platformIndex": 4
+      },
+      {
+        "platformIndex": 1
+      },
+      {
+        "platformIndex": 0
+      },
+    ],
+    "ladders": [
+      {
+        "x": 45,
+        "y": 2772,
+        "height": 204
+      },
+      {
+        "x": 450,
+        "y": 2596,
+        "height": 140
+      },
+      {
+        "x": 1300,
+        "y": 2496,
+        "height": 312
+      },
+      {
+        "x": 1700,
+        "y": 2724,
+        "height": 252
+      },
+    ],
+    "player": {
+      "x": 30,
+      "y": 3000 - 74,
+    },
+  },
+]
+
+module.exports = {
+  getLevelData: function(index){
+    return levels[index-1];
+  },
+}
+
+},{}],18:[function(require,module,exports){
 c = require('./canvas');
 helpers = require('./helpers');
 Screen = require('./screen')
@@ -1044,7 +1291,7 @@ module.exports = {
   }
 }
 
-},{"./canvas":13,"./helpers":15,"./screen":18}],18:[function(require,module,exports){
+},{"./canvas":13,"./helpers":15,"./screen":19}],19:[function(require,module,exports){
 var c = require('./canvas');
 
 var screen = {
@@ -1142,7 +1389,7 @@ module.exports = {
   }
 }
 
-},{"./canvas":13}],19:[function(require,module,exports){
+},{"./canvas":13}],20:[function(require,module,exports){
 var c = require('../Config/canvas');
 var keys = require('../Config/keys');
 var m = require('../Config/mouse');
@@ -1155,6 +1402,7 @@ var Player = require('../Actors/player');
 var Explosion = require('../Actors/Attacks/explosion');
 var Patroler = require('../Actors/Monsters/patroler');
 var Particle = require('../Actors/particles');
+var levelList = require('../Config/levels');
 
 var initialised = false;
 var changeState = false;
@@ -1173,6 +1421,7 @@ var particles = [];
 var smokeParts = [];
 var explosions = [];
 var player = undefined;
+var currLevel = undefined;
 
 function resetGame(){
   clearInterval(gameLoop);
@@ -1187,6 +1436,7 @@ function resetGame(){
   player.missiles = [];
   explosions = [];
   player = undefined;
+  currLevel = undefined;
   changeState = true;
   nextState = "menuState";
 }
@@ -1460,66 +1710,60 @@ module.exports = {
     lavas = [];
     ladders = [];
     player = undefined;
+    currLevel = levelList.getLevelData(config.getLevel());
+    console.log(currLevel);
 
     world = {
       x: 0,
       y: 0,
-      width: 4000,
-      height: 3000,
+      width: currLevel.world.width,
+      height: currLevel.world.height,
     };
 
-    platform1 = Platform.newPlatform(270,2608,228,12);
-    platform2 = Platform.newPlatform(430,2738,128,12);
-    platform3 = Platform.newPlatform(40,2788,128,12);
-    platform4 = Platform.newPlatform(0,world.height-24,200,12);
-    platform5 = Platform.newPlatform(1650,world.height-24,300,12);
-    platform6 = Platform.newPlatform(2350,world.height-24,1400,12);
-    platform7 = Platform.newPlatform(570,2508,268,12);
-    platform8 = Platform.newPlatform(1270,2508,68,12);
-    platform9 = Platform.newPlatform(1290,2808,264,12);
-    platform10 = Platform.newPlatform(1670,2738,164,12);
-    platforms.push(platform1,platform2,platform3,platform4,platform5, platform6, platform7, platform8, platform9,platform10);
+    for (var i = 0; i < currLevel.platforms.length; i++) {
+      currPlat = currLevel.platforms[i];
+      platforms.push(Platform.newPlatform(currPlat.x,currPlat.y,currPlat.width,currPlat.height));
+    }
 
-    ledge1 = Platform.newPlatform(100,2588,100,12,'red');
-    ledge2 = Platform.newPlatform(100,2488,100,12,'red');
-    ledges.push(ledge1, ledge2);
+    for (var i = 0; i < currLevel.ledges.length; i++) {
+      currLedge = currLevel.ledges[i];
+      ledges.push(Platform.newPlatform(currLedge.x,currLedge.y,currLedge.width,currLedge.height,currLedge.color));
+    }
 
-    expPlat1 = Platform.newExplodingPlatform(2000,2938,88,12,'#8b0000');
-    expPlat2 = Platform.newExplodingPlatform(2200,2938,88,12,'#8b0000');
-    expPlatforms.push(expPlat1,expPlat2);
+    for (var i = 0; i < currLevel.expPlatforms.length; i++) {
+      currExp = currLevel.expPlatforms[i];
+      expPlatforms.push(Platform.newExplodingPlatform(currExp.x,currExp.y,currExp.width,currExp.height,currExp.color));
+    }
 
-    vanPlat1 = Platform.newVanishingPlatform(270,2838,88,12,'magenta');
-    vanPlat2 = Platform.newVanishingPlatform(990,2552,168,12,'magenta');
-    vanPlatforms.push(vanPlat1,vanPlat2);
+    for (var i = 0; i < currLevel.vanPlatforms.length; i++) {
+      currVan = currLevel.vanPlatforms[i];
+      vanPlatforms.push(Platform.newVanishingPlatform(currVan.x,currVan.y,currVan.width,currVan.height,currVan.color));
+    }
 
-    movPlat1 = Platform.newMovingPlatform(400,world.height-36,70,12,'darkGreen',world.height-12, world.height-160,0.5);
-    movPlat2 = Platform.newMovingPlatform(570,world.height-80,70,12,'darkGreen',world.height-12, world.height-160,1);
-    movPlat3 = Platform.newMovingPlatform(740,world.height-12,70,12,'darkGreen',world.height-12, world.height-160,1.5);
-    movPlat4 = Platform.newMovingPlatform(910,world.height-100,70,12,'darkGreen',world.height-12, world.height-160,0.5);
-    movPlat5 = Platform.newMovingPlatform(1080,world.height-40,70,12,'darkGreen',world.height-12, world.height-160,0.2);
-    movPlat6 = Platform.newMovingPlatform(1250,world.height-20,70,12,'darkGreen',world.height-12, world.height-160,0.7);
-    movPlatforms.push(movPlat1,movPlat2,movPlat3,movPlat4,movPlat5,movPlat6);
+    for (var i = 0; i < currLevel.movPlatforms.length; i++) {
+      currMov = currLevel.movPlatforms[i];
+      movPlatforms.push(Platform.newMovingPlatform(currMov.x,currMov.y,currMov.width,currMov.height,currMov.color,currMov.minY,currMov.maxY,currMov.speed));
+    }
 
-    lava1 = Platform.newPlatform(0,world.height-12,world.width,12,'darkOrange');
-    lavas.push(lava1);
+    for (var i = 0; i < currLevel.lavas.length; i++) {
+      currLav = currLevel.lavas[i];
+      lavas.push(Platform.newPlatform(currLav.x,currLav.y,currLav.width,currLav.height,currLav.color));
+    }
 
-    monster1 = Patroler.newPatroler(platforms[5]);
-    monster2 = Patroler.newPatroler(platforms[2]);
-    monster3 = Patroler.newPatroler(platforms[4]);
-    monster4 = Patroler.newPatroler(platforms[1]);
-    monster5 = Patroler.newPatroler(platforms[0]);
-    monsters.push(monster1,monster2,monster3,monster4,monster5);
+    for (var i = 0; i < currLevel.monstersPatrolers.length; i++) {
+      currPat = currLevel.monstersPatrolers[i];
+      monsters.push(Patroler.newPatroler(platforms[currPat.platformIndex]));
+    }
 
-    ladder1 = Ladder.newLadder(45,2772,204);
-    ladder2 = Ladder.newLadder(450,2596,140);
-    ladder3 = Ladder.newLadder(1300,2496,312);
-    ladder4 = Ladder.newLadder(1700,2724,252);
-    ladders.push(ladder1,ladder2,ladder3,ladder4);
+    for (var i = 0; i < currLevel.ladders.length; i++) {
+      currLad = currLevel.ladders[i];
+      ladders.push(Ladder.newLadder(currLad.x,currLad.y,currLad.height));
+    }
 
     player = Player.getPlayer();
-    player.y = world.height - player.height - 20;
+    player.x = currLevel.player.x;
+    player.y = currLevel.player.y;
     player.missiles = [];
-    player.x =30;
 
     Screen.setScreen(0,world.height-c.height,player.y+(player.height/2)-(screen.height/2));
 
@@ -1593,7 +1837,7 @@ module.exports = {
   },
 }
 
-},{"../Actors/Attacks/explosion":1,"../Actors/Monsters/patroler":6,"../Actors/ladder":8,"../Actors/particles":9,"../Actors/platform":10,"../Actors/player":11,"../Config/canvas":13,"../Config/config":14,"../Config/helpers":15,"../Config/keys":16,"../Config/mouse":17,"../Config/screen":18}],20:[function(require,module,exports){
+},{"../Actors/Attacks/explosion":1,"../Actors/Monsters/patroler":6,"../Actors/ladder":8,"../Actors/particles":9,"../Actors/platform":10,"../Actors/player":11,"../Config/canvas":13,"../Config/config":14,"../Config/helpers":15,"../Config/keys":16,"../Config/levels":17,"../Config/mouse":18,"../Config/screen":19}],21:[function(require,module,exports){
 var assets = require('../Config/assets');
 var c = require('../Config/canvas');
 
@@ -1663,7 +1907,7 @@ module.exports = {
   },
 }
 
-},{"../Config/assets":12,"../Config/canvas":13}],21:[function(require,module,exports){
+},{"../Config/assets":12,"../Config/canvas":13}],22:[function(require,module,exports){
 var c = require('../Config/canvas');
 var keys = require('../Config/keys');
 var config = require('../Config/config');
@@ -1716,7 +1960,7 @@ module.exports = {
   },
 }
 
-},{"../Config/canvas":13,"../Config/config":14,"../Config/keys":16}],22:[function(require,module,exports){
+},{"../Config/canvas":13,"../Config/config":14,"../Config/keys":16}],23:[function(require,module,exports){
 var c = require('./Config/canvas');
 var keys = require('./Config/keys');
 var m = require('./Config/mouse');
@@ -1758,9 +2002,9 @@ module.exports = {
   }
 }
 
-},{"./Config/canvas":13,"./Config/keys":16,"./Config/mouse":17,"./States/gameState":19,"./States/loadingState":20,"./States/menuState":21}],23:[function(require,module,exports){
+},{"./Config/canvas":13,"./Config/keys":16,"./Config/mouse":18,"./States/gameState":20,"./States/loadingState":21,"./States/menuState":22}],24:[function(require,module,exports){
 var game = require('./game');
 
 game.init();
 
-},{"./game":22}]},{},[23]);
+},{"./game":23}]},{},[24]);

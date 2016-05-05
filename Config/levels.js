@@ -1,7 +1,8 @@
 var levels = [
+  //////////////////////// LEVEL 1
   {
     "world": {
-      "width": 4000,
+      "width": 2500,
       "height": 3000,
     },
     "platforms": [
@@ -117,42 +118,42 @@ var levels = [
     "movPlatforms": [
       {
         "x": 400,
-        "y": 3000-36,
+        "y": 2964,
         "width": 70,
         "height": 12,
         "color": "darkGreen",
-        "minY": 3000-12,
-        "maxY": 3000-160,
+        "minY": 3000,
+        "maxY": 2840,
         "speed": 0.5,
       },
       {
         "x": 570,
-        "y": 3000-80,
+        "y": 2920,
         "width": 70,
         "height": 12,
         "color": "darkGreen",
-        "minY": 3000-12,
-        "maxY": 3000-160,
+        "minY": 3000,
+        "maxY": 2840,
         "speed": 1
       },
       {
         "x": 740,
-        "y": 3000-12,
+        "y": 2988,
         "width": 70,
         "height": 12,
         "color": "darkGreen",
-        "minY": 3000-12,
-        "maxY": 3000-160,
+        "minY": 3000,
+        "maxY": 2840,
         "speed": 1.5
       },
       {
         "x": 910,
-        "y": 3000-100,
+        "y": 2900,
         "width": 70,
         "height": 12,
         "color": "darkGreen",
-        "minY": 3000-12,
-        "maxY": 3000-160,
+        "minY": 3000,
+        "maxY": 2840,
         "speed": 0.5,
       },
       {
@@ -161,34 +162,31 @@ var levels = [
         "width": 70,
         "height": 12,
         "color": "darkGreen",
-        "minY": 3000-12,
-        "maxY": 3000-160,
+        "minY": 3000,
+        "maxY": 2840,
         "speed": 0.2
       },
       {
         "x": 1250,
-        "y": 3000-20,
+        "y": 2980,
         "width": 70,
         "height": 12,
         "color": "darkGreen",
-        "minY": 0,
-        "maxY": 0,
+        "minY": 3000,
+        "maxY": 2840,
         "speed": 0.7
       },
     ],
     "lavas": [
       {
         "x": 0,
-        "y": 3000-12,
+        "y": 2988,
         "width": 4000,
         "height": 12,
         "color": "darkOrange",
       },
     ],
     "monstersPatrolers": [
-      {
-        "platformIndex": 5
-      },
       {
         "platformIndex": 2
       },
@@ -226,8 +224,101 @@ var levels = [
     ],
     "player": {
       "x": 30,
-      "y": 3000 - 74,
+      "y": 2926,
     },
+    "levelExit":{
+      "x": 2460,
+      "y": 2922,
+      "height": 54,
+      "width": 40,
+      "color": "#000"
+    }
+  },
+    //////////////////////// LEVEL 2 //////////////////////////////////////////////
+  {
+    "world": {
+      "width": 1200,
+      "height": 480,
+    },
+    "platforms": [
+      {
+        "x": 0,
+        "y": 456,
+        "width": 150,
+        "height": 12,
+      },
+      {
+        "x": 1050,
+        "y": 456,
+        "width": 150,
+        "height": 12,
+      }
+    ],
+    "ledges": [
+
+    ],
+    "expPlatforms": [
+      {
+        "x": 200,
+        "y": 380,
+        "width": 88,
+        "height": 12,
+        "color": "#8b0000",
+      },
+      {
+        "x": 400,
+        "y": 300,
+        "width": 88,
+        "height": 12,
+        "color": "#8b0000",
+      },
+      {
+        "x": 620,
+        "y": 300,
+        "width": 88,
+        "height": 12,
+        "color": "#8b0000",
+      },
+      {
+        "x": 830,
+        "y": 300,
+        "width": 88,
+        "height": 12,
+        "color": "#8b0000",
+      },
+    ],
+    "vanPlatforms": [
+
+    ],
+    "movPlatforms": [
+
+    ],
+    "lavas": [
+      {
+        "x": 0,
+        "y": 468,
+        "width": 1200,
+        "height": 12,
+        "color": "darkOrange",
+      }
+    ],
+    "monstersPatrolers": [
+
+    ],
+    "ladders": [
+
+    ],
+    "player": {
+      "x": 10,
+      "y": 400,
+    },
+    "levelExit":{
+      "x": 1160,
+      "y": 402,
+      "height": 54,
+      "width": 40,
+      "color": "#000"
+    }
   },
 ]
 

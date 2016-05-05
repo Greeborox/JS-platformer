@@ -30,6 +30,7 @@ var smokeParts = [];
 var explosions = [];
 var player = undefined;
 var currLevel = undefined;
+var exit = undefined;
 
 function resetGame(){
   clearInterval(gameLoop);
@@ -45,8 +46,7 @@ function resetGame(){
   explosions = [];
   player = undefined;
   currLevel = undefined;
-  changeState = true;
-  nextState = "menuState";
+  exit = undefined;
 }
 
 function killPlayer(){
@@ -62,15 +62,38 @@ function updateState(){
       player.alive = true;
       player.deadFor = 0;
       resetGame();
+      config.setLevel(1);
+      changeState = true;
+      nextState = "menuState";
     } else {
       player.deadFor++
     }
   } else {
-    player.update(config.getGravity());
+    if(!player.leavingMap){
+      player.update(config.getGravity());
+    }
   }
 
-  player.x = Math.max(0, Math.min(player.x, world.width - player.width));
-  player.y = Math.max(0, Math.min(player.y, world.height - player.height));
+  if(player.leavingMap){
+    if(player.x < world.width){
+      player.x++;
+      player.y+=5;
+    } else {
+      player.leavingMap = false;
+      config.addLevel();
+      resetGame();
+      changeState = true;
+      nextState = "gameState";
+    }
+  }
+
+  if(helpers.checkCollision(player,exit)){
+    player.leavingMap = true;
+  }
+  if(!player.leavingMap){
+    player.x = Math.max(0, Math.min(player.x, world.width - player.width));
+    player.y = Math.max(0, Math.min(player.y, world.height - player.height));
+  }
 
   mouseCoords = m.getCoords();
   Screen.updateScreen(player.x,player.y,player.width,player.height,player.direction,world.width,world.height,mouseCoords.y);
@@ -367,6 +390,12 @@ module.exports = {
       currLad = currLevel.ladders[i];
       ladders.push(Ladder.newLadder(currLad.x,currLad.y,currLad.height));
     }
+    exit = {};
+    exit.x = currLevel.levelExit.x;
+    exit.y = currLevel.levelExit.y;
+    exit.width = currLevel.levelExit.width;
+    exit.height = currLevel.levelExit.height;
+    exit.color = currLevel.levelExit.color;
 
     player = Player.getPlayer();
     player.x = currLevel.player.x;
@@ -385,6 +414,10 @@ module.exports = {
       c.ctx.clearRect(0,0,c.width,c.height);
       c.ctx.save();
       c.ctx.translate(-gameScreen.x, -gameScreen.y);
+      // exit draw for test
+      c.ctx.fillStyle = exit.color;
+      c.ctx.fillRect(exit.x,exit.y,exit.width,exit.height);
+      // end exit draw
       for(var i = 0; i<platforms.length;i++){
         c.ctx.fillStyle = platforms[i].color;
         platforms[i].draw(c.ctx);

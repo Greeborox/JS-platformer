@@ -23,6 +23,7 @@ var attacks = {
 player = entity.newEntity();
 player.color = "blue";
 player.alive = true;
+player.leavingMap = false;
 player.deadFor = 0;
 player.jumping = false;
 player.kneeling = false;

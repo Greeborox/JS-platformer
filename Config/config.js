@@ -14,5 +14,8 @@ module.exports = {
   },
   setLevel: function(lvl){
     currLevel = lvl;
+  },
+  addLevel: function(){
+    currLevel++;
   }
 }

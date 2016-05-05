@@ -564,6 +564,7 @@ var attacks = {
 player = entity.newEntity();
 player.color = "blue";
 player.alive = true;
+player.leavingMap = false;
 player.deadFor = 0;
 player.jumping = false;
 player.kneeling = false;
@@ -877,6 +878,9 @@ module.exports = {
   },
   setLevel: function(lvl){
     currLevel = lvl;
+  },
+  addLevel: function(){
+    currLevel++;
   }
 }
 
@@ -997,9 +1001,10 @@ module.exports = {
 
 },{}],17:[function(require,module,exports){
 var levels = [
+  //////////////////////// LEVEL 1
   {
     "world": {
-      "width": 4000,
+      "width": 2500,
       "height": 3000,
     },
     "platforms": [
@@ -1115,42 +1120,42 @@ var levels = [
     "movPlatforms": [
       {
         "x": 400,
-        "y": 3000-36,
+        "y": 2964,
         "width": 70,
         "height": 12,
         "color": "darkGreen",
-        "minY": 3000-12,
-        "maxY": 3000-160,
+        "minY": 3000,
+        "maxY": 2840,
         "speed": 0.5,
       },
       {
         "x": 570,
-        "y": 3000-80,
+        "y": 2920,
         "width": 70,
         "height": 12,
         "color": "darkGreen",
-        "minY": 3000-12,
-        "maxY": 3000-160,
+        "minY": 3000,
+        "maxY": 2840,
         "speed": 1
       },
       {
         "x": 740,
-        "y": 3000-12,
+        "y": 2988,
         "width": 70,
         "height": 12,
         "color": "darkGreen",
-        "minY": 3000-12,
-        "maxY": 3000-160,
+        "minY": 3000,
+        "maxY": 2840,
         "speed": 1.5
       },
       {
         "x": 910,
-        "y": 3000-100,
+        "y": 2900,
         "width": 70,
         "height": 12,
         "color": "darkGreen",
-        "minY": 3000-12,
-        "maxY": 3000-160,
+        "minY": 3000,
+        "maxY": 2840,
         "speed": 0.5,
       },
       {
@@ -1159,34 +1164,31 @@ var levels = [
         "width": 70,
         "height": 12,
         "color": "darkGreen",
-        "minY": 3000-12,
-        "maxY": 3000-160,
+        "minY": 3000,
+        "maxY": 2840,
         "speed": 0.2
       },
       {
         "x": 1250,
-        "y": 3000-20,
+        "y": 2980,
         "width": 70,
         "height": 12,
         "color": "darkGreen",
-        "minY": 0,
-        "maxY": 0,
+        "minY": 3000,
+        "maxY": 2840,
         "speed": 0.7
       },
     ],
     "lavas": [
       {
         "x": 0,
-        "y": 3000-12,
+        "y": 2988,
         "width": 4000,
         "height": 12,
         "color": "darkOrange",
       },
     ],
     "monstersPatrolers": [
-      {
-        "platformIndex": 5
-      },
       {
         "platformIndex": 2
       },
@@ -1224,8 +1226,101 @@ var levels = [
     ],
     "player": {
       "x": 30,
-      "y": 3000 - 74,
+      "y": 2926,
     },
+    "levelExit":{
+      "x": 2460,
+      "y": 2922,
+      "height": 54,
+      "width": 40,
+      "color": "#000"
+    }
+  },
+    //////////////////////// LEVEL 2 //////////////////////////////////////////////
+  {
+    "world": {
+      "width": 1200,
+      "height": 480,
+    },
+    "platforms": [
+      {
+        "x": 0,
+        "y": 456,
+        "width": 150,
+        "height": 12,
+      },
+      {
+        "x": 1050,
+        "y": 456,
+        "width": 150,
+        "height": 12,
+      }
+    ],
+    "ledges": [
+
+    ],
+    "expPlatforms": [
+      {
+        "x": 200,
+        "y": 380,
+        "width": 88,
+        "height": 12,
+        "color": "#8b0000",
+      },
+      {
+        "x": 400,
+        "y": 300,
+        "width": 88,
+        "height": 12,
+        "color": "#8b0000",
+      },
+      {
+        "x": 620,
+        "y": 300,
+        "width": 88,
+        "height": 12,
+        "color": "#8b0000",
+      },
+      {
+        "x": 830,
+        "y": 300,
+        "width": 88,
+        "height": 12,
+        "color": "#8b0000",
+      },
+    ],
+    "vanPlatforms": [
+
+    ],
+    "movPlatforms": [
+
+    ],
+    "lavas": [
+      {
+        "x": 0,
+        "y": 468,
+        "width": 1200,
+        "height": 12,
+        "color": "darkOrange",
+      }
+    ],
+    "monstersPatrolers": [
+
+    ],
+    "ladders": [
+
+    ],
+    "player": {
+      "x": 10,
+      "y": 400,
+    },
+    "levelExit":{
+      "x": 1160,
+      "y": 402,
+      "height": 54,
+      "width": 40,
+      "color": "#000"
+    }
   },
 ]
 
@@ -1422,6 +1517,7 @@ var smokeParts = [];
 var explosions = [];
 var player = undefined;
 var currLevel = undefined;
+var exit = undefined;
 
 function resetGame(){
   clearInterval(gameLoop);
@@ -1437,8 +1533,7 @@ function resetGame(){
   explosions = [];
   player = undefined;
   currLevel = undefined;
-  changeState = true;
-  nextState = "menuState";
+  exit = undefined;
 }
 
 function killPlayer(){
@@ -1454,15 +1549,38 @@ function updateState(){
       player.alive = true;
       player.deadFor = 0;
       resetGame();
+      config.setLevel(1);
+      changeState = true;
+      nextState = "menuState";
     } else {
       player.deadFor++
     }
   } else {
-    player.update(config.getGravity());
+    if(!player.leavingMap){
+      player.update(config.getGravity());
+    }
   }
 
-  player.x = Math.max(0, Math.min(player.x, world.width - player.width));
-  player.y = Math.max(0, Math.min(player.y, world.height - player.height));
+  if(player.leavingMap){
+    if(player.x < world.width){
+      player.x++;
+      player.y+=5;
+    } else {
+      player.leavingMap = false;
+      config.addLevel();
+      resetGame();
+      changeState = true;
+      nextState = "gameState";
+    }
+  }
+
+  if(helpers.checkCollision(player,exit)){
+    player.leavingMap = true;
+  }
+  if(!player.leavingMap){
+    player.x = Math.max(0, Math.min(player.x, world.width - player.width));
+    player.y = Math.max(0, Math.min(player.y, world.height - player.height));
+  }
 
   mouseCoords = m.getCoords();
   Screen.updateScreen(player.x,player.y,player.width,player.height,player.direction,world.width,world.height,mouseCoords.y);
@@ -1759,6 +1877,12 @@ module.exports = {
       currLad = currLevel.ladders[i];
       ladders.push(Ladder.newLadder(currLad.x,currLad.y,currLad.height));
     }
+    exit = {};
+    exit.x = currLevel.levelExit.x;
+    exit.y = currLevel.levelExit.y;
+    exit.width = currLevel.levelExit.width;
+    exit.height = currLevel.levelExit.height;
+    exit.color = currLevel.levelExit.color;
 
     player = Player.getPlayer();
     player.x = currLevel.player.x;
@@ -1777,6 +1901,10 @@ module.exports = {
       c.ctx.clearRect(0,0,c.width,c.height);
       c.ctx.save();
       c.ctx.translate(-gameScreen.x, -gameScreen.y);
+      // exit draw for test
+      c.ctx.fillStyle = exit.color;
+      c.ctx.fillRect(exit.x,exit.y,exit.width,exit.height);
+      // end exit draw
       for(var i = 0; i<platforms.length;i++){
         c.ctx.fillStyle = platforms[i].color;
         platforms[i].draw(c.ctx);

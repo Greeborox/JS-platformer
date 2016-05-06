@@ -4,11 +4,13 @@ var m = require('./Config/mouse');
 var loadingState = require('./States/loadingState');
 var menuState = require('./States/menuState');
 var gameState = require('./States/gameState');
+var announceState = require('./States/announceState');
 
 var states = {
   'loadingState' : loadingState,
   'menuState' : menuState,
-  'gameState' : gameState
+  'gameState' : gameState,
+  'announceState': announceState,
 }
 
 var currState = states['loadingState'];

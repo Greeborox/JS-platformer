@@ -960,7 +960,27 @@ module.exports = {
                obj1.y + obj1.height < obj2.y ||
                obj2.y + obj2.height < obj1.y);
     }
-  }
+  },
+  drawButton: function(button,ctx){
+    if(button.hover){
+      ctx.fillStyle = 'gray';
+    } else {
+      ctx.fillStyle = button.color;
+    }
+    ctx.fillRect(button.x,button.y,button.width,button.height);
+    ctx.font="20px Arial";
+    ctx.fillStyle = '#000';
+    ctx.textAlign = "center"
+    ctx.fillText(button.text,button.x+button.width/2,button.y+button.height/2+6);
+  },
+  checkPointCollision: function(point,obj){
+    if(point.x > obj.x && point.x < obj.x+obj.width){
+      if(point.y > obj.y && point.y < obj.y+obj.height){
+        return true;
+      }
+    }
+    return false;
+  },
 }
 
 },{}],16:[function(require,module,exports){
@@ -1332,7 +1352,6 @@ module.exports = {
 
 },{}],18:[function(require,module,exports){
 c = require('./canvas');
-helpers = require('./helpers');
 Screen = require('./screen')
 
 mouseClicked = false;
@@ -1386,7 +1405,7 @@ module.exports = {
   }
 }
 
-},{"./canvas":13,"./helpers":15,"./screen":19}],19:[function(require,module,exports){
+},{"./canvas":13,"./screen":19}],19:[function(require,module,exports){
 var c = require('./canvas');
 
 var screen = {
@@ -1486,6 +1505,107 @@ module.exports = {
 
 },{"./canvas":13}],20:[function(require,module,exports){
 var c = require('../Config/canvas');
+var config = require('../Config/config');
+var mouse = require('../Config/mouse');
+var helpers = require('../Config/helpers');
+
+var initialised = false;
+var changeState = false;
+var nextState = undefined;
+var gameLoop = undefined;
+var currLevel = 0;
+var buttons = [
+  {
+    'x': c.width/2-100,
+    'y': c.height/2-50,
+    'width': 200,
+    'height': 50,
+    'color': 'red',
+    'text': 'Start level',
+    'hover': false
+  },
+  {
+    'x': c.width/2-100,
+    'y': c.height/2+25,
+    'width': 200,
+    'height': 50,
+    'color': 'blue',
+    'text': 'Upgrade',
+    'hover': false
+  },
+  {
+    'x': c.width/2-100,
+    'y': c.height/2+100,
+    'width': 200,
+    'height': 50,
+    'color': 'green',
+    'text': 'Quit',
+    'hover': false
+  }
+];
+
+function updateState(){
+  if(mouse.isClicked()||mouse.isRclicked()){
+    if(helpers.checkPointCollision(mouse.getCoords(),buttons[0])){
+      clearInterval(gameLoop);
+      changeState = true;
+      nextState = "gameState";
+    }
+    if(helpers.checkPointCollision(mouse.getCoords(),buttons[2])){
+      clearInterval(gameLoop);
+      changeState = true;
+      config.setLevel(1);
+      nextState = "menuState";
+    }
+  }
+  for (var i = 0; i < buttons.length; i++) {
+    if(helpers.checkPointCollision(mouse.getCoords(),buttons[i])){
+      buttons[i].hover = true;
+    } else {
+      buttons[i].hover = false;
+    }
+  }
+};
+
+module.exports = {
+  isInitialised: function(){
+    return initialised;
+  },
+  isFinished: function(){
+    return changeState;
+  },
+  getNextState: function(){
+    return nextState;
+  },
+  setInitialised: function(bool){
+    initialised = bool;
+  },
+  init: function() {
+    console.log("announce state initialised");
+    changeState = false;
+    initialised = true;
+    for (var i = 0; i < buttons.length; i++) {
+      buttons[i].hover = false;
+    }
+    currLevel = config.getLevel();
+    gameLoop = setInterval(function(){
+      updateState();
+    },1000/config.getFPS());
+  },
+  draw: function() {
+    c.ctx.clearRect(0,0,c.width,c.height);
+    for (var i = 0; i < buttons.length; i++) {
+      helpers.drawButton(buttons[i], c.ctx);
+    }
+    c.ctx.font="20px Arial";
+    c.ctx.fillStyle = '#000';
+    c.ctx.textAlign = "left";
+    c.ctx.fillText("get ready for Level: "+currLevel,20,30);
+  },
+}
+
+},{"../Config/canvas":13,"../Config/config":14,"../Config/helpers":15,"../Config/mouse":18}],21:[function(require,module,exports){
+var c = require('../Config/canvas');
 var keys = require('../Config/keys');
 var m = require('../Config/mouse');
 var config = require('../Config/config');
@@ -1534,6 +1654,7 @@ function resetGame(){
   player = undefined;
   currLevel = undefined;
   exit = undefined;
+  Screen.resetScreen();
 }
 
 function killPlayer(){
@@ -1561,7 +1682,7 @@ function updateState(){
     }
   }
 
-  if(player.leavingMap){
+  if(player && player.leavingMap){
     if(player.x < world.width){
       player.x++;
       player.y+=5;
@@ -1570,14 +1691,14 @@ function updateState(){
       config.addLevel();
       resetGame();
       changeState = true;
-      nextState = "gameState";
+      nextState = "announceState";
     }
   }
 
   if(helpers.checkCollision(player,exit)){
     player.leavingMap = true;
   }
-  if(!player.leavingMap){
+  if(player && !player.leavingMap){
     player.x = Math.max(0, Math.min(player.x, world.width - player.width));
     player.y = Math.max(0, Math.min(player.y, world.height - player.height));
   }
@@ -1965,7 +2086,7 @@ module.exports = {
   },
 }
 
-},{"../Actors/Attacks/explosion":1,"../Actors/Monsters/patroler":6,"../Actors/ladder":8,"../Actors/particles":9,"../Actors/platform":10,"../Actors/player":11,"../Config/canvas":13,"../Config/config":14,"../Config/helpers":15,"../Config/keys":16,"../Config/levels":17,"../Config/mouse":18,"../Config/screen":19}],21:[function(require,module,exports){
+},{"../Actors/Attacks/explosion":1,"../Actors/Monsters/patroler":6,"../Actors/ladder":8,"../Actors/particles":9,"../Actors/platform":10,"../Actors/player":11,"../Config/canvas":13,"../Config/config":14,"../Config/helpers":15,"../Config/keys":16,"../Config/levels":17,"../Config/mouse":18,"../Config/screen":19}],22:[function(require,module,exports){
 var assets = require('../Config/assets');
 var c = require('../Config/canvas');
 
@@ -2035,21 +2156,43 @@ module.exports = {
   },
 }
 
-},{"../Config/assets":12,"../Config/canvas":13}],22:[function(require,module,exports){
+},{"../Config/assets":12,"../Config/canvas":13}],23:[function(require,module,exports){
 var c = require('../Config/canvas');
 var keys = require('../Config/keys');
 var config = require('../Config/config');
+var mouse = require('../Config/mouse');
+var helpers = require('../Config/helpers');
 
 var initialised = false;
 var changeState = false;
 var nextState = undefined;
 var gameLoop = undefined;
+var buttons = [
+  {
+    'x': c.width/2-100,
+    'y': c.height/2+25,
+    'width': 200,
+    'height': 50,
+    'color': 'green',
+    'text': 'Start Game',
+    'hover': false
+  },
+]
 
 function updateState(){
-  if(keys.isPressed('SPACE')){
-    clearInterval(gameLoop);
-    changeState = true;
-    nextState = "gameState";
+  for (var i = 0; i < buttons.length; i++) {
+    if(helpers.checkPointCollision(mouse.getCoords(),buttons[i])){
+      buttons[i].hover = true;
+    } else {
+      buttons[i].hover = false;
+    }
+  }
+  if(mouse.isClicked()||mouse.isRclicked()){
+    if(helpers.checkPointCollision(mouse.getCoords(),buttons[0])){
+      clearInterval(gameLoop);
+      changeState = true;
+      nextState = "gameState";
+    }
   }
 };
 
@@ -2076,6 +2219,9 @@ module.exports = {
   },
   draw: function() {
     c.ctx.clearRect(0,0,c.width,c.height);
+    for (var i = 0; i < buttons.length; i++) {
+      helpers.drawButton(buttons[i], c.ctx);
+    }
     c.ctx.font="20px Arial";
     c.ctx.fillStyle = '#000';
     c.ctx.textAlign = "left";
@@ -2084,22 +2230,23 @@ module.exports = {
     c.ctx.fillText("You can look around with the mouse",20,90);
     c.ctx.fillText("Left Click = melee Attack; Right Click = spell",20,120);
     c.ctx.fillText("Toogle the spells with 'e' key",20,150);
-    c.ctx.fillText("PRESS SPACE",20,c.height/2+40);
   },
 }
 
-},{"../Config/canvas":13,"../Config/config":14,"../Config/keys":16}],23:[function(require,module,exports){
+},{"../Config/canvas":13,"../Config/config":14,"../Config/helpers":15,"../Config/keys":16,"../Config/mouse":18}],24:[function(require,module,exports){
 var c = require('./Config/canvas');
 var keys = require('./Config/keys');
 var m = require('./Config/mouse');
 var loadingState = require('./States/loadingState');
 var menuState = require('./States/menuState');
 var gameState = require('./States/gameState');
+var announceState = require('./States/announceState');
 
 var states = {
   'loadingState' : loadingState,
   'menuState' : menuState,
-  'gameState' : gameState
+  'gameState' : gameState,
+  'announceState': announceState,
 }
 
 var currState = states['loadingState'];
@@ -2130,9 +2277,9 @@ module.exports = {
   }
 }
 
-},{"./Config/canvas":13,"./Config/keys":16,"./Config/mouse":18,"./States/gameState":20,"./States/loadingState":21,"./States/menuState":22}],24:[function(require,module,exports){
+},{"./Config/canvas":13,"./Config/keys":16,"./Config/mouse":18,"./States/announceState":20,"./States/gameState":21,"./States/loadingState":22,"./States/menuState":23}],25:[function(require,module,exports){
 var game = require('./game');
 
 game.init();
 
-},{"./game":23}]},{},[24]);
+},{"./game":24}]},{},[25]);

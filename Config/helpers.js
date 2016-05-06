@@ -73,5 +73,25 @@ module.exports = {
                obj1.y + obj1.height < obj2.y ||
                obj2.y + obj2.height < obj1.y);
     }
-  }
+  },
+  drawButton: function(button,ctx){
+    if(button.hover){
+      ctx.fillStyle = 'gray';
+    } else {
+      ctx.fillStyle = button.color;
+    }
+    ctx.fillRect(button.x,button.y,button.width,button.height);
+    ctx.font="20px Arial";
+    ctx.fillStyle = '#000';
+    ctx.textAlign = "center"
+    ctx.fillText(button.text,button.x+button.width/2,button.y+button.height/2+6);
+  },
+  checkPointCollision: function(point,obj){
+    if(point.x > obj.x && point.x < obj.x+obj.width){
+      if(point.y > obj.y && point.y < obj.y+obj.height){
+        return true;
+      }
+    }
+    return false;
+  },
 }

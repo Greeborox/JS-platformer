@@ -1,5 +1,4 @@
 c = require('./canvas');
-helpers = require('./helpers');
 Screen = require('./screen')
 
 mouseClicked = false;

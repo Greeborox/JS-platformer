@@ -1,5 +1,4 @@
 var c = require('../Config/canvas');
-var keys = require('../Config/keys');
 var config = require('../Config/config');
 var mouse = require('../Config/mouse');
 var helpers = require('../Config/helpers');
@@ -8,31 +7,56 @@ var initialised = false;
 var changeState = false;
 var nextState = undefined;
 var gameLoop = undefined;
+var currLevel = 0;
 var buttons = [
+  {
+    'x': c.width/2-100,
+    'y': c.height/2-50,
+    'width': 200,
+    'height': 50,
+    'color': 'red',
+    'text': 'Start level',
+    'hover': false
+  },
   {
     'x': c.width/2-100,
     'y': c.height/2+25,
     'width': 200,
     'height': 50,
-    'color': 'green',
-    'text': 'Start Game',
+    'color': 'blue',
+    'text': 'Upgrade',
     'hover': false
   },
-]
+  {
+    'x': c.width/2-100,
+    'y': c.height/2+100,
+    'width': 200,
+    'height': 50,
+    'color': 'green',
+    'text': 'Quit',
+    'hover': false
+  }
+];
 
 function updateState(){
-  for (var i = 0; i < buttons.length; i++) {
-    if(helpers.checkPointCollision(mouse.getCoords(),buttons[i])){
-      buttons[i].hover = true;
-    } else {
-      buttons[i].hover = false;
-    }
-  }
   if(mouse.isClicked()||mouse.isRclicked()){
     if(helpers.checkPointCollision(mouse.getCoords(),buttons[0])){
       clearInterval(gameLoop);
       changeState = true;
       nextState = "gameState";
+    }
+    if(helpers.checkPointCollision(mouse.getCoords(),buttons[2])){
+      clearInterval(gameLoop);
+      changeState = true;
+      config.setLevel(1);
+      nextState = "menuState";
+    }
+  }
+  for (var i = 0; i < buttons.length; i++) {
+    if(helpers.checkPointCollision(mouse.getCoords(),buttons[i])){
+      buttons[i].hover = true;
+    } else {
+      buttons[i].hover = false;
     }
   }
 };
@@ -51,9 +75,13 @@ module.exports = {
     initialised = bool;
   },
   init: function() {
-    console.log("menu state initialised");
+    console.log("announce state initialised");
     changeState = false;
     initialised = true;
+    for (var i = 0; i < buttons.length; i++) {
+      buttons[i].hover = false;
+    }
+    currLevel = config.getLevel();
     gameLoop = setInterval(function(){
       updateState();
     },1000/config.getFPS());
@@ -66,10 +94,6 @@ module.exports = {
     c.ctx.font="20px Arial";
     c.ctx.fillStyle = '#000';
     c.ctx.textAlign = "left";
-    c.ctx.fillText("Welcome to JS Platformer Alpha Build",20,30);
-    c.ctx.fillText("Use the WASD keys to move around",20,60);
-    c.ctx.fillText("You can look around with the mouse",20,90);
-    c.ctx.fillText("Left Click = melee Attack; Right Click = spell",20,120);
-    c.ctx.fillText("Toogle the spells with 'e' key",20,150);
+    c.ctx.fillText("get ready for Level: "+currLevel,20,30);
   },
 }

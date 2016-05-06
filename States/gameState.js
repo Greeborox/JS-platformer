@@ -47,6 +47,7 @@ function resetGame(){
   player = undefined;
   currLevel = undefined;
   exit = undefined;
+  Screen.resetScreen();
 }
 
 function killPlayer(){
@@ -74,7 +75,7 @@ function updateState(){
     }
   }
 
-  if(player.leavingMap){
+  if(player && player.leavingMap){
     if(player.x < world.width){
       player.x++;
       player.y+=5;
@@ -83,14 +84,14 @@ function updateState(){
       config.addLevel();
       resetGame();
       changeState = true;
-      nextState = "gameState";
+      nextState = "announceState";
     }
   }
 
   if(helpers.checkCollision(player,exit)){
     player.leavingMap = true;
   }
-  if(!player.leavingMap){
+  if(player && !player.leavingMap){
     player.x = Math.max(0, Math.min(player.x, world.width - player.width));
     player.y = Math.max(0, Math.min(player.y, world.height - player.height));
   }

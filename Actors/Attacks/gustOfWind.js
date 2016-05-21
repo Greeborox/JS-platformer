@@ -3,6 +3,7 @@ var Entity = require('../entity')
 var gustOfWind = Entity.newEntity();
 gustOfWind.type = "gustOfWind";
 gustOfWind.speed = 5;
+gustOfWind.manaCost = 1;
 gustOfWind.width = 10;
 gustOfWind.height = 55;
 gustOfWind.x = 0;

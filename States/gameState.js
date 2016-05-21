@@ -43,6 +43,7 @@ function resetGame(){
   monsters = [];
   ladders = [];
   player.missiles = [];
+  player.mana = player.maxMana;
   explosions = [];
   player = undefined;
   currLevel = undefined;
@@ -474,7 +475,8 @@ module.exports = {
       }
       c.ctx.restore()
       c.ctx.font="14px Arial";
-      c.ctx.fillText("current spell: "+player.attacks[player.currAttack],3,15);
+      c.ctx.fillText("Current spell: "+player.attacks[player.currAttack],3,15);
+      c.ctx.fillText("Mana: "+player.mana+"/"+player.maxMana,3,30);
     }
   },
 }

@@ -3,6 +3,7 @@ var Entity = require('../entity')
 
 var fireBomb = Entity.newEntity();
 fireBomb.type = "fireBomb";
+fireBomb.manaCost = 7;
 fireBomb.speedX = 10;
 fireBomb.speedY = 10;
 fireBomb.width = 15;

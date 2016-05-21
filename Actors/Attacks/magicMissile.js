@@ -4,12 +4,13 @@ var Entity = require('../entity')
 var magicMissile = Entity.newEntity();
 magicMissile.type = "magicMissile";
 magicMissile.speed = 10;
+magicMissile.manaCost = 3;
 magicMissile.width = 5;
 magicMissile.height = 5;
 magicMissile.x = 0;
 magicMissile.y = 0;
 magicMissile.angle = 0;
-magicMissile.power = 40;
+magicMissile.power = 50;
 
 module.exports = {
   newMissile: function(x,y,width,mx,my,direction){

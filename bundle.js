@@ -36,6 +36,7 @@ var Entity = require('../entity')
 
 var fireBomb = Entity.newEntity();
 fireBomb.type = "fireBomb";
+fireBomb.manaCost = 7;
 fireBomb.speedX = 10;
 fireBomb.speedY = 10;
 fireBomb.width = 15;
@@ -92,6 +93,7 @@ var Entity = require('../entity')
 var gustOfWind = Entity.newEntity();
 gustOfWind.type = "gustOfWind";
 gustOfWind.speed = 5;
+gustOfWind.manaCost = 1;
 gustOfWind.width = 10;
 gustOfWind.height = 55;
 gustOfWind.x = 0;
@@ -127,12 +129,13 @@ var Entity = require('../entity')
 var magicMissile = Entity.newEntity();
 magicMissile.type = "magicMissile";
 magicMissile.speed = 10;
+magicMissile.manaCost = 3;
 magicMissile.width = 5;
 magicMissile.height = 5;
 magicMissile.x = 0;
 magicMissile.y = 0;
 magicMissile.angle = 0;
-magicMissile.power = 40;
+magicMissile.power = 50;
 
 module.exports = {
   newMissile: function(x,y,width,mx,my,direction){
@@ -579,6 +582,10 @@ player.whichPlatform = {};
 player.vector = {x:0,y:0};
 player.fallingVel = 0;
 player.direction = 0;
+player.mana = 20;
+player.maxMana = 20;
+player.lastManaTick = 0;
+player.manaRegenTime = 60;
 player.width = 24;
 player.height = 54;
 player.x = 30;
@@ -733,10 +740,14 @@ player.controlMouse = function() {
   if(m.isClicked() && !mClicked && !player.onLadder) {
     mClicked = true;
     var clickCoords = m.getClickedCoords()
+    var missile = attacks[player.attacks[player.currAttack]];
     mx = clickCoords.x;
     my = clickCoords.y;
-    var missile = attacks[player.attacks[player.currAttack]].newMissile(player.x,player.y,player.width,mx,my,player.direction);
-    player.missiles.push(missile);
+    var newMissile = missile.newMissile(player.x,player.y,player.width,mx,my,player.direction);
+    if(newMissile.manaCost <= player.mana){
+      player.mana -= newMissile.manaCost;
+      player.missiles.push(newMissile);
+    }
   }
   if(!m.isClicked()){
     mClicked = false;
@@ -775,12 +786,24 @@ player.handleKneeling = function(){
   }
 }
 
+player.updateMana = function(){
+  if(this.lastManaTick >= this.manaRegenTime){
+    if(this.mana<this.maxMana){
+      this.mana++;
+    }
+    this.lastManaTick = 0;
+  } else {
+    this.lastManaTick+=1;
+  }
+}
+
 player.update = function(grav){
   this.controlKeys();
   this.controlMouse();
   this.updateMissiles();
   player.stab.update(player.x,player.y,player.width,player.height,player.direction);
   this.handleKneeling();
+  this.updateMana();
 
   if(this.y===0){
     this.vector.y = 0;
@@ -1650,6 +1673,7 @@ function resetGame(){
   monsters = [];
   ladders = [];
   player.missiles = [];
+  player.mana = player.maxMana;
   explosions = [];
   player = undefined;
   currLevel = undefined;
@@ -2081,7 +2105,8 @@ module.exports = {
       }
       c.ctx.restore()
       c.ctx.font="14px Arial";
-      c.ctx.fillText("current spell: "+player.attacks[player.currAttack],3,15);
+      c.ctx.fillText("Current spell: "+player.attacks[player.currAttack],3,15);
+      c.ctx.fillText("Mana: "+player.mana+"/"+player.maxMana,3,30);
     }
   },
 }

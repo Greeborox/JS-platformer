@@ -48,6 +48,7 @@ player.x = 30;
 player.y = c.height - player.height - 50;
 player.prevY;
 player.attacks = ['magicMissile','gustOfWind','fireBomb']
+//player.attacks = ['magicMissile','gustOfWind','fireBomb']
 player.currAttack = 0
 player.missiles = [];
 player.stab = entity.newEntity();
@@ -193,7 +194,7 @@ player.controlMouse = function() {
   if(!m.isRclicked()) {
     rClicked = false;
   }
-  if(m.isClicked() && !mClicked && !player.onLadder) {
+  if(m.isClicked() && !mClicked && !player.onLadder && player.attacks.length > 0) {
     mClicked = true;
     var clickCoords = m.getClickedCoords()
     var missile = attacks[player.attacks[player.currAttack]];
@@ -253,6 +254,13 @@ player.updateMana = function(){
   }
 }
 
+player.resetAttacks = function(){
+  this.attacks = [];
+}
+player.addAttack = function(attack){
+  this.attacks.push(attack)
+}
+
 player.update = function(grav){
   this.controlKeys();
   this.controlMouse();
@@ -260,6 +268,10 @@ player.update = function(grav){
   player.stab.update(player.x,player.y,player.width,player.height,player.direction);
   this.handleKneeling();
   this.updateMana();
+
+  if(this.attacks.length === 1) {
+    this.currAttack = 0;
+  }
 
   if(this.y===0){
     this.vector.y = 0;

@@ -6,6 +6,7 @@ var helpers = require('../Config/helpers');
 var Screen = require('../Config/screen');
 var Platform = require('../Actors/platform');
 var Ladder = require('../Actors/ladder');
+var Shrine = require('../Actors/spellShrine');
 var Player = require('../Actors/player');
 var Explosion = require('../Actors/Attacks/explosion');
 var Patroler = require('../Actors/Monsters/patroler');
@@ -25,6 +26,7 @@ var expPlatforms = [];
 var lavas = [];
 var monsters = [];
 var ladders = [];
+var shrines = [];
 var particles = [];
 var smokeParts = [];
 var explosions = [];
@@ -42,6 +44,8 @@ function resetGame(){
   lavas = [];
   monsters = [];
   ladders = [];
+  shrines = [];
+  particles = [];
   player.missiles = [];
   player.mana = player.maxMana;
   explosions = [];
@@ -259,6 +263,16 @@ function updateState(){
     }
   }
 
+  for(var i = 0; i<shrines.length;i++){
+    if(helpers.checkCollision(player,shrines[i])){
+      if(player.kneelingFor >= 90){
+        if(player.attacks.indexOf(shrines[i].spell) === -1){
+          player.addAttack(shrines[i].spell);
+        }
+      }
+    }
+  }
+
   for(var i = 0; i<platforms.length;i++){
     if(helpers.checkCollision(player,platforms[i])){
       player.touchingPlatform = true;
@@ -344,7 +358,6 @@ module.exports = {
     ladders = [];
     player = undefined;
     currLevel = levelList.getLevelData(config.getLevel());
-    console.log(currLevel);
 
     world = {
       x: 0,
@@ -392,6 +405,10 @@ module.exports = {
       currLad = currLevel.ladders[i];
       ladders.push(Ladder.newLadder(currLad.x,currLad.y,currLad.height));
     }
+    for (var i = 0; i < currLevel.spellShrines.length; i++) {
+      currShrine = currLevel.spellShrines[i];
+      shrines.push(Shrine.newShrine(currShrine.x,currShrine.y,currShrine.spell));
+    }
     exit = {};
     exit.x = currLevel.levelExit.x;
     exit.y = currLevel.levelExit.y;
@@ -402,6 +419,9 @@ module.exports = {
     player = Player.getPlayer();
     player.x = currLevel.player.x;
     player.y = currLevel.player.y;
+    if(config.getLevel()===1){
+      player.resetAttacks();
+    }
     player.missiles = [];
 
     Screen.setScreen(0,world.height-c.height,player.y+(player.height/2)-(screen.height/2));
@@ -450,6 +470,9 @@ module.exports = {
       for(var i = 0; i<ladders.length;i++){
         ladders[i].draw(c.ctx);
       }
+      for(var i = 0; i<shrines.length;i++){
+        shrines[i].draw(c.ctx);
+      }
       c.ctx.fillStyle = player.color;
       if(player.alive){
         player.draw(c.ctx);
@@ -475,7 +498,11 @@ module.exports = {
       }
       c.ctx.restore()
       c.ctx.font="14px Arial";
-      c.ctx.fillText("Current spell: "+player.attacks[player.currAttack],3,15);
+      if(player.attacks.length > 0) {
+        c.ctx.fillText("Current spell: "+player.attacks[player.currAttack],3,15);
+      } else {
+        c.ctx.fillText("No Spells",3,15);
+      }
       c.ctx.fillText("Mana: "+player.mana+"/"+player.maxMana,3,30);
     }
   },

@@ -1,5 +1,158 @@
 var levels = [
-  //////////////////////// LEVEL 1
+  //////////////////////// LEVEL 1 ///////////////////////////
+  {
+    "world": {
+      "width": 640,
+      "height": 480,
+    },
+    "platforms": [
+      {
+        "x": 0,
+        "y": 468,
+        "width": 640,
+        "height": 12,
+      },
+      {
+        "x": 150,
+        "y": 318,
+        "width": 250,
+        "height": 12,
+      }
+    ],
+    "ledges": [
+
+    ],
+    "expPlatforms": [
+
+    ],
+    "vanPlatforms": [
+
+    ],
+    "movPlatforms": [
+
+    ],
+    "lavas": [
+
+    ],
+    "monstersPatrolers": [
+
+    ],
+    "ladders": [
+      {
+        "x": 165,
+        "y": 300,
+        "height": 166
+      },
+    ],
+    "spellShrines": [
+      {
+        "x": 296,
+        "y": 210,
+        "spell": "gustOfWind"
+      },
+    ],
+    "player": {
+      "x": 10,
+      "y": 400,
+    },
+    "levelExit":{
+      "x": 600,
+      "y": 414,
+      "height": 54,
+      "width": 40,
+      "color": "#000"
+    }
+  },
+    //////////////////////// LEVEL 2 ///////////////////////////
+  {
+    "world": {
+      "width": 1200,
+      "height": 480,
+    },
+    "platforms": [
+      {
+        "x": 0,
+        "y": 456,
+        "width": 150,
+        "height": 12,
+      },
+      {
+        "x": 1050,
+        "y": 456,
+        "width": 150,
+        "height": 12,
+      }
+    ],
+    "ledges": [
+
+    ],
+    "expPlatforms": [
+      {
+        "x": 200,
+        "y": 380,
+        "width": 88,
+        "height": 12,
+        "color": "#8b0000",
+      },
+      {
+        "x": 400,
+        "y": 300,
+        "width": 88,
+        "height": 12,
+        "color": "#8b0000",
+      },
+      {
+        "x": 620,
+        "y": 300,
+        "width": 88,
+        "height": 12,
+        "color": "#8b0000",
+      },
+      {
+        "x": 830,
+        "y": 300,
+        "width": 88,
+        "height": 12,
+        "color": "#8b0000",
+      },
+    ],
+    "vanPlatforms": [
+
+    ],
+    "movPlatforms": [
+
+    ],
+    "lavas": [
+      {
+        "x": 0,
+        "y": 468,
+        "width": 1200,
+        "height": 12,
+        "color": "darkOrange",
+      }
+    ],
+    "monstersPatrolers": [
+
+    ],
+    "ladders": [
+
+    ],
+    "spellShrines": [
+
+    ],
+    "player": {
+      "x": 10,
+      "y": 400,
+    },
+    "levelExit":{
+      "x": 1160,
+      "y": 402,
+      "height": 54,
+      "width": 40,
+      "color": "#000"
+    }
+  },
+  //////////////////////// LEVEL 3 ///////////////////////////
   {
     "world": {
       "width": 2500,
@@ -222,6 +375,9 @@ var levels = [
         "height": 252
       },
     ],
+    "spellShrines": [
+
+    ],
     "player": {
       "x": 30,
       "y": 2926,
@@ -229,92 +385,6 @@ var levels = [
     "levelExit":{
       "x": 2460,
       "y": 2922,
-      "height": 54,
-      "width": 40,
-      "color": "#000"
-    }
-  },
-    //////////////////////// LEVEL 2 //////////////////////////////////////////////
-  {
-    "world": {
-      "width": 1200,
-      "height": 480,
-    },
-    "platforms": [
-      {
-        "x": 0,
-        "y": 456,
-        "width": 150,
-        "height": 12,
-      },
-      {
-        "x": 1050,
-        "y": 456,
-        "width": 150,
-        "height": 12,
-      }
-    ],
-    "ledges": [
-
-    ],
-    "expPlatforms": [
-      {
-        "x": 200,
-        "y": 380,
-        "width": 88,
-        "height": 12,
-        "color": "#8b0000",
-      },
-      {
-        "x": 400,
-        "y": 300,
-        "width": 88,
-        "height": 12,
-        "color": "#8b0000",
-      },
-      {
-        "x": 620,
-        "y": 300,
-        "width": 88,
-        "height": 12,
-        "color": "#8b0000",
-      },
-      {
-        "x": 830,
-        "y": 300,
-        "width": 88,
-        "height": 12,
-        "color": "#8b0000",
-      },
-    ],
-    "vanPlatforms": [
-
-    ],
-    "movPlatforms": [
-
-    ],
-    "lavas": [
-      {
-        "x": 0,
-        "y": 468,
-        "width": 1200,
-        "height": 12,
-        "color": "darkOrange",
-      }
-    ],
-    "monstersPatrolers": [
-
-    ],
-    "ladders": [
-
-    ],
-    "player": {
-      "x": 10,
-      "y": 400,
-    },
-    "levelExit":{
-      "x": 1160,
-      "y": 402,
       "height": 54,
       "width": 40,
       "color": "#000"

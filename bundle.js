@@ -87,7 +87,7 @@ module.exports = {
   }
 }
 
-},{"../../Config/helpers":15,"../entity":7}],3:[function(require,module,exports){
+},{"../../Config/helpers":16,"../entity":7}],3:[function(require,module,exports){
 var Entity = require('../entity')
 
 var gustOfWind = Entity.newEntity();
@@ -167,7 +167,7 @@ module.exports = {
   }
 }
 
-},{"../../Config/helpers":15,"../entity":7}],5:[function(require,module,exports){
+},{"../../Config/helpers":16,"../entity":7}],5:[function(require,module,exports){
 var Entity = require('../entity')
 
 var monster = Entity.newEntity();
@@ -317,7 +317,7 @@ module.exports = {
   },
 }
 
-},{"../Config/assets":12,"../Config/canvas":13,"./entity":7}],9:[function(require,module,exports){
+},{"../Config/assets":13,"../Config/canvas":14,"./entity":7}],9:[function(require,module,exports){
 var Entity = require('./entity');
 
 particle = Entity.newEntity();
@@ -541,7 +541,7 @@ module.exports = {
   }
 }
 
-},{"../Config/canvas":13,"./entity":7}],11:[function(require,module,exports){
+},{"../Config/canvas":14,"./entity":7}],11:[function(require,module,exports){
 var entity = require('./entity');
 var keys = require('../Config/keys');
 var c = require('../Config/canvas');
@@ -592,6 +592,7 @@ player.x = 30;
 player.y = c.height - player.height - 50;
 player.prevY;
 player.attacks = ['magicMissile','gustOfWind','fireBomb']
+//player.attacks = ['magicMissile','gustOfWind','fireBomb']
 player.currAttack = 0
 player.missiles = [];
 player.stab = entity.newEntity();
@@ -737,7 +738,7 @@ player.controlMouse = function() {
   if(!m.isRclicked()) {
     rClicked = false;
   }
-  if(m.isClicked() && !mClicked && !player.onLadder) {
+  if(m.isClicked() && !mClicked && !player.onLadder && player.attacks.length > 0) {
     mClicked = true;
     var clickCoords = m.getClickedCoords()
     var missile = attacks[player.attacks[player.currAttack]];
@@ -797,6 +798,13 @@ player.updateMana = function(){
   }
 }
 
+player.resetAttacks = function(){
+  this.attacks = [];
+}
+player.addAttack = function(attack){
+  this.attacks.push(attack)
+}
+
 player.update = function(grav){
   this.controlKeys();
   this.controlMouse();
@@ -804,6 +812,10 @@ player.update = function(grav){
   player.stab.update(player.x,player.y,player.width,player.height,player.direction);
   this.handleKneeling();
   this.updateMana();
+
+  if(this.attacks.length === 1) {
+    this.currAttack = 0;
+  }
 
   if(this.y===0){
     this.vector.y = 0;
@@ -847,7 +859,26 @@ module.exports = {
   }
 }
 
-},{"../Config/assets":12,"../Config/canvas":13,"../Config/helpers":15,"../Config/keys":16,"../Config/mouse":18,"./Attacks/fireBomb":2,"./Attacks/gustOfWind":3,"./Attacks/magicMissile":4,"./entity":7}],12:[function(require,module,exports){
+},{"../Config/assets":13,"../Config/canvas":14,"../Config/helpers":16,"../Config/keys":17,"../Config/mouse":19,"./Attacks/fireBomb":2,"./Attacks/gustOfWind":3,"./Attacks/magicMissile":4,"./entity":7}],12:[function(require,module,exports){
+var entity = require('./entity');
+
+shrine = entity.newEntity();
+shrine.width = 48;
+shrine.height = 108;
+shrine.type = 'shrine';
+shrine.color = '#A3159A';
+
+module.exports = {
+  newShrine: function(x,y,spell){
+    var newShr = Object.create(shrine);
+    newShr.x = x;
+    newShr.y = y;
+    newShr.spell = spell;
+    return newShr;
+  },
+}
+
+},{"./entity":7}],13:[function(require,module,exports){
 var assets = [];
 var assetsNum = 0;
 
@@ -874,7 +905,7 @@ module.exports = {
   }
 }
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 var canvas = document.getElementById('canvas');
 
 module.exports = {
@@ -884,7 +915,7 @@ module.exports = {
     height: canvas.height,
 };
 
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 fps = 60;
 gravity = 5;
 currLevel = 1;
@@ -907,7 +938,7 @@ module.exports = {
   }
 }
 
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 module.exports = {
   blockRect: function(r1,r2){
     if(r1&&r2){
@@ -1006,7 +1037,7 @@ module.exports = {
   },
 }
 
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 var pressedKeys = {};
 var keys = {
   SPACE: 32,
@@ -1042,9 +1073,162 @@ module.exports = {
   }
 }
 
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 var levels = [
-  //////////////////////// LEVEL 1
+  //////////////////////// LEVEL 1 ///////////////////////////
+  {
+    "world": {
+      "width": 640,
+      "height": 480,
+    },
+    "platforms": [
+      {
+        "x": 0,
+        "y": 468,
+        "width": 640,
+        "height": 12,
+      },
+      {
+        "x": 150,
+        "y": 318,
+        "width": 250,
+        "height": 12,
+      }
+    ],
+    "ledges": [
+
+    ],
+    "expPlatforms": [
+
+    ],
+    "vanPlatforms": [
+
+    ],
+    "movPlatforms": [
+
+    ],
+    "lavas": [
+
+    ],
+    "monstersPatrolers": [
+
+    ],
+    "ladders": [
+      {
+        "x": 165,
+        "y": 300,
+        "height": 166
+      },
+    ],
+    "spellShrines": [
+      {
+        "x": 296,
+        "y": 210,
+        "spell": "gustOfWind"
+      },
+    ],
+    "player": {
+      "x": 10,
+      "y": 400,
+    },
+    "levelExit":{
+      "x": 600,
+      "y": 414,
+      "height": 54,
+      "width": 40,
+      "color": "#000"
+    }
+  },
+    //////////////////////// LEVEL 2 ///////////////////////////
+  {
+    "world": {
+      "width": 1200,
+      "height": 480,
+    },
+    "platforms": [
+      {
+        "x": 0,
+        "y": 456,
+        "width": 150,
+        "height": 12,
+      },
+      {
+        "x": 1050,
+        "y": 456,
+        "width": 150,
+        "height": 12,
+      }
+    ],
+    "ledges": [
+
+    ],
+    "expPlatforms": [
+      {
+        "x": 200,
+        "y": 380,
+        "width": 88,
+        "height": 12,
+        "color": "#8b0000",
+      },
+      {
+        "x": 400,
+        "y": 300,
+        "width": 88,
+        "height": 12,
+        "color": "#8b0000",
+      },
+      {
+        "x": 620,
+        "y": 300,
+        "width": 88,
+        "height": 12,
+        "color": "#8b0000",
+      },
+      {
+        "x": 830,
+        "y": 300,
+        "width": 88,
+        "height": 12,
+        "color": "#8b0000",
+      },
+    ],
+    "vanPlatforms": [
+
+    ],
+    "movPlatforms": [
+
+    ],
+    "lavas": [
+      {
+        "x": 0,
+        "y": 468,
+        "width": 1200,
+        "height": 12,
+        "color": "darkOrange",
+      }
+    ],
+    "monstersPatrolers": [
+
+    ],
+    "ladders": [
+
+    ],
+    "spellShrines": [
+
+    ],
+    "player": {
+      "x": 10,
+      "y": 400,
+    },
+    "levelExit":{
+      "x": 1160,
+      "y": 402,
+      "height": 54,
+      "width": 40,
+      "color": "#000"
+    }
+  },
+  //////////////////////// LEVEL 3 ///////////////////////////
   {
     "world": {
       "width": 2500,
@@ -1267,6 +1451,9 @@ var levels = [
         "height": 252
       },
     ],
+    "spellShrines": [
+
+    ],
     "player": {
       "x": 30,
       "y": 2926,
@@ -1274,92 +1461,6 @@ var levels = [
     "levelExit":{
       "x": 2460,
       "y": 2922,
-      "height": 54,
-      "width": 40,
-      "color": "#000"
-    }
-  },
-    //////////////////////// LEVEL 2 //////////////////////////////////////////////
-  {
-    "world": {
-      "width": 1200,
-      "height": 480,
-    },
-    "platforms": [
-      {
-        "x": 0,
-        "y": 456,
-        "width": 150,
-        "height": 12,
-      },
-      {
-        "x": 1050,
-        "y": 456,
-        "width": 150,
-        "height": 12,
-      }
-    ],
-    "ledges": [
-
-    ],
-    "expPlatforms": [
-      {
-        "x": 200,
-        "y": 380,
-        "width": 88,
-        "height": 12,
-        "color": "#8b0000",
-      },
-      {
-        "x": 400,
-        "y": 300,
-        "width": 88,
-        "height": 12,
-        "color": "#8b0000",
-      },
-      {
-        "x": 620,
-        "y": 300,
-        "width": 88,
-        "height": 12,
-        "color": "#8b0000",
-      },
-      {
-        "x": 830,
-        "y": 300,
-        "width": 88,
-        "height": 12,
-        "color": "#8b0000",
-      },
-    ],
-    "vanPlatforms": [
-
-    ],
-    "movPlatforms": [
-
-    ],
-    "lavas": [
-      {
-        "x": 0,
-        "y": 468,
-        "width": 1200,
-        "height": 12,
-        "color": "darkOrange",
-      }
-    ],
-    "monstersPatrolers": [
-
-    ],
-    "ladders": [
-
-    ],
-    "player": {
-      "x": 10,
-      "y": 400,
-    },
-    "levelExit":{
-      "x": 1160,
-      "y": 402,
       "height": 54,
       "width": 40,
       "color": "#000"
@@ -1373,7 +1474,7 @@ module.exports = {
   },
 }
 
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 c = require('./canvas');
 Screen = require('./screen')
 
@@ -1428,7 +1529,7 @@ module.exports = {
   }
 }
 
-},{"./canvas":13,"./screen":19}],19:[function(require,module,exports){
+},{"./canvas":14,"./screen":20}],20:[function(require,module,exports){
 var c = require('./canvas');
 
 var screen = {
@@ -1526,7 +1627,7 @@ module.exports = {
   }
 }
 
-},{"./canvas":13}],20:[function(require,module,exports){
+},{"./canvas":14}],21:[function(require,module,exports){
 var c = require('../Config/canvas');
 var config = require('../Config/config');
 var mouse = require('../Config/mouse');
@@ -1627,7 +1728,7 @@ module.exports = {
   },
 }
 
-},{"../Config/canvas":13,"../Config/config":14,"../Config/helpers":15,"../Config/mouse":18}],21:[function(require,module,exports){
+},{"../Config/canvas":14,"../Config/config":15,"../Config/helpers":16,"../Config/mouse":19}],22:[function(require,module,exports){
 var c = require('../Config/canvas');
 var keys = require('../Config/keys');
 var m = require('../Config/mouse');
@@ -1636,6 +1737,7 @@ var helpers = require('../Config/helpers');
 var Screen = require('../Config/screen');
 var Platform = require('../Actors/platform');
 var Ladder = require('../Actors/ladder');
+var Shrine = require('../Actors/spellShrine');
 var Player = require('../Actors/player');
 var Explosion = require('../Actors/Attacks/explosion');
 var Patroler = require('../Actors/Monsters/patroler');
@@ -1655,6 +1757,7 @@ var expPlatforms = [];
 var lavas = [];
 var monsters = [];
 var ladders = [];
+var shrines = [];
 var particles = [];
 var smokeParts = [];
 var explosions = [];
@@ -1672,6 +1775,8 @@ function resetGame(){
   lavas = [];
   monsters = [];
   ladders = [];
+  shrines = [];
+  particles = [];
   player.missiles = [];
   player.mana = player.maxMana;
   explosions = [];
@@ -1889,6 +1994,16 @@ function updateState(){
     }
   }
 
+  for(var i = 0; i<shrines.length;i++){
+    if(helpers.checkCollision(player,shrines[i])){
+      if(player.kneelingFor >= 90){
+        if(player.attacks.indexOf(shrines[i].spell) === -1){
+          player.addAttack(shrines[i].spell);
+        }
+      }
+    }
+  }
+
   for(var i = 0; i<platforms.length;i++){
     if(helpers.checkCollision(player,platforms[i])){
       player.touchingPlatform = true;
@@ -1974,7 +2089,6 @@ module.exports = {
     ladders = [];
     player = undefined;
     currLevel = levelList.getLevelData(config.getLevel());
-    console.log(currLevel);
 
     world = {
       x: 0,
@@ -2022,6 +2136,10 @@ module.exports = {
       currLad = currLevel.ladders[i];
       ladders.push(Ladder.newLadder(currLad.x,currLad.y,currLad.height));
     }
+    for (var i = 0; i < currLevel.spellShrines.length; i++) {
+      currShrine = currLevel.spellShrines[i];
+      shrines.push(Shrine.newShrine(currShrine.x,currShrine.y,currShrine.spell));
+    }
     exit = {};
     exit.x = currLevel.levelExit.x;
     exit.y = currLevel.levelExit.y;
@@ -2032,6 +2150,9 @@ module.exports = {
     player = Player.getPlayer();
     player.x = currLevel.player.x;
     player.y = currLevel.player.y;
+    if(config.getLevel()===1){
+      player.resetAttacks();
+    }
     player.missiles = [];
 
     Screen.setScreen(0,world.height-c.height,player.y+(player.height/2)-(screen.height/2));
@@ -2080,6 +2201,9 @@ module.exports = {
       for(var i = 0; i<ladders.length;i++){
         ladders[i].draw(c.ctx);
       }
+      for(var i = 0; i<shrines.length;i++){
+        shrines[i].draw(c.ctx);
+      }
       c.ctx.fillStyle = player.color;
       if(player.alive){
         player.draw(c.ctx);
@@ -2105,13 +2229,17 @@ module.exports = {
       }
       c.ctx.restore()
       c.ctx.font="14px Arial";
-      c.ctx.fillText("Current spell: "+player.attacks[player.currAttack],3,15);
+      if(player.attacks.length > 0) {
+        c.ctx.fillText("Current spell: "+player.attacks[player.currAttack],3,15);
+      } else {
+        c.ctx.fillText("No Spells",3,15);
+      }
       c.ctx.fillText("Mana: "+player.mana+"/"+player.maxMana,3,30);
     }
   },
 }
 
-},{"../Actors/Attacks/explosion":1,"../Actors/Monsters/patroler":6,"../Actors/ladder":8,"../Actors/particles":9,"../Actors/platform":10,"../Actors/player":11,"../Config/canvas":13,"../Config/config":14,"../Config/helpers":15,"../Config/keys":16,"../Config/levels":17,"../Config/mouse":18,"../Config/screen":19}],22:[function(require,module,exports){
+},{"../Actors/Attacks/explosion":1,"../Actors/Monsters/patroler":6,"../Actors/ladder":8,"../Actors/particles":9,"../Actors/platform":10,"../Actors/player":11,"../Actors/spellShrine":12,"../Config/canvas":14,"../Config/config":15,"../Config/helpers":16,"../Config/keys":17,"../Config/levels":18,"../Config/mouse":19,"../Config/screen":20}],23:[function(require,module,exports){
 var assets = require('../Config/assets');
 var c = require('../Config/canvas');
 
@@ -2181,7 +2309,7 @@ module.exports = {
   },
 }
 
-},{"../Config/assets":12,"../Config/canvas":13}],23:[function(require,module,exports){
+},{"../Config/assets":13,"../Config/canvas":14}],24:[function(require,module,exports){
 var c = require('../Config/canvas');
 var keys = require('../Config/keys');
 var config = require('../Config/config');
@@ -2258,7 +2386,7 @@ module.exports = {
   },
 }
 
-},{"../Config/canvas":13,"../Config/config":14,"../Config/helpers":15,"../Config/keys":16,"../Config/mouse":18}],24:[function(require,module,exports){
+},{"../Config/canvas":14,"../Config/config":15,"../Config/helpers":16,"../Config/keys":17,"../Config/mouse":19}],25:[function(require,module,exports){
 var c = require('./Config/canvas');
 var keys = require('./Config/keys');
 var m = require('./Config/mouse');
@@ -2302,9 +2430,9 @@ module.exports = {
   }
 }
 
-},{"./Config/canvas":13,"./Config/keys":16,"./Config/mouse":18,"./States/announceState":20,"./States/gameState":21,"./States/loadingState":22,"./States/menuState":23}],25:[function(require,module,exports){
+},{"./Config/canvas":14,"./Config/keys":17,"./Config/mouse":19,"./States/announceState":21,"./States/gameState":22,"./States/loadingState":23,"./States/menuState":24}],26:[function(require,module,exports){
 var game = require('./game');
 
 game.init();
 
-},{"./game":24}]},{},[25]);
+},{"./game":25}]},{},[26]);

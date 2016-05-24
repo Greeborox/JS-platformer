@@ -12,6 +12,7 @@ var Explosion = require('../Actors/Attacks/explosion');
 var Patroler = require('../Actors/Monsters/patroler');
 var Particle = require('../Actors/particles');
 var levelList = require('../Config/levels');
+var Message = require('../Actors/message');
 
 var initialised = false;
 var changeState = false;
@@ -31,6 +32,7 @@ var particles = [];
 var smokeParts = [];
 var explosions = [];
 var player = undefined;
+var message = undefined;
 var currLevel = undefined;
 var exit = undefined;
 
@@ -50,6 +52,7 @@ function resetGame(){
   player.mana = player.maxMana;
   explosions = [];
   player = undefined;
+  message = undefined;
   currLevel = undefined;
   exit = undefined;
   Screen.resetScreen();
@@ -78,6 +81,10 @@ function updateState(){
     if(!player.leavingMap){
       player.update(config.getGravity());
     }
+  }
+
+  if(message.active){
+    message.update(player.x+player.width,player.y-30);
   }
 
   if(player && player.leavingMap){
@@ -262,14 +269,24 @@ function updateState(){
       player.whichLadder = {};
     }
   }
-
   for(var i = 0; i<shrines.length;i++){
     if(helpers.checkCollision(player,shrines[i])){
+      if(!player.touchingShrine && player.attacks.indexOf(shrines[i].spell) === -1){
+        message.reset();
+        message.setMsg('senseSpellMsg');
+        message.active = true;
+      }
+      player.touchingShrine = true;
       if(player.kneelingFor >= 90){
         if(player.attacks.indexOf(shrines[i].spell) === -1){
           player.addAttack(shrines[i].spell);
+          message.reset();
+          message.setMsg('newSpellMsg');
+          message.active = true;
         }
       }
+    } else {
+      player.touchingShrine = false;
     }
   }
 
@@ -357,6 +374,7 @@ module.exports = {
     lavas = [];
     ladders = [];
     player = undefined;
+    message = undefined;
     currLevel = levelList.getLevelData(config.getLevel());
 
     world = {
@@ -423,6 +441,8 @@ module.exports = {
       player.resetAttacks();
     }
     player.missiles = [];
+
+    message = Message.getMessage();
 
     Screen.setScreen(0,world.height-c.height,player.y+(player.height/2)-(screen.height/2));
 
@@ -495,6 +515,9 @@ module.exports = {
       }
       for(var i = 0; i < explosions.length; i++){
         explosions[i].draw(c.ctx);
+      }
+      if(message.active){
+        message.draw(c.ctx)
       }
       c.ctx.restore()
       c.ctx.font="14px Arial";

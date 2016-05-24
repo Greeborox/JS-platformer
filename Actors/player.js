@@ -7,6 +7,7 @@ var m = require('../Config/mouse');
 var magicMissile = require('./Attacks/magicMissile');
 var gustOfWind = require('./Attacks/gustOfWind');
 var fireBomb = require('./Attacks/fireBomb');
+var Message = require('./message');
 
 var upPressed = false;
 var downPressed = false;
@@ -20,6 +21,8 @@ var attacks = {
   'fireBomb' : fireBomb,
 }
 
+var message = Message.getMessage();
+
 player = entity.newEntity();
 player.color = "blue";
 player.alive = true;
@@ -28,6 +31,7 @@ player.deadFor = 0;
 player.jumping = false;
 player.kneeling = false;
 player.kneelingFor = 0;
+player.touchingShrine = false;
 player.getsUpIn = 0;
 player.onGround = false;
 player.touchingLadder = false;
@@ -48,7 +52,6 @@ player.x = 30;
 player.y = c.height - player.height - 50;
 player.prevY;
 player.attacks = ['magicMissile','gustOfWind','fireBomb']
-//player.attacks = ['magicMissile','gustOfWind','fireBomb']
 player.currAttack = 0
 player.missiles = [];
 player.stab = entity.newEntity();
@@ -202,8 +205,15 @@ player.controlMouse = function() {
     my = clickCoords.y;
     var newMissile = missile.newMissile(player.x,player.y,player.width,mx,my,player.direction);
     if(newMissile.manaCost <= player.mana){
+      if(message.active && message.image === 'noManaMsg'){
+        message.reset();
+      }
       player.mana -= newMissile.manaCost;
       player.missiles.push(newMissile);
+    } else {
+      message.reset();
+      message.setMsg('noManaMsg');
+      message.active = true;
     }
   }
   if(!m.isClicked()){

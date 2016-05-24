@@ -18,6 +18,18 @@ function loadAssets(){
   ladderPic.src = "./GFX/ladder.png";
   ladderPic.addEventListener("load",function(){assets.addAsset()},false)
   assets.newAsset("ladder",ladderPic);
+  senseSpellMsgPic = new Image();
+  senseSpellMsgPic.src = "./GFX/SenseNewSpellMsg.png";
+  senseSpellMsgPic.addEventListener("load",function(){assets.addAsset()},false)
+  assets.newAsset("senseSpellMsg",senseSpellMsgPic);
+  newSpellMsgPic = new Image();
+  newSpellMsgPic.src = "./GFX/newSpellMsg.png";
+  newSpellMsgPic.addEventListener("load",function(){assets.addAsset()},false)
+  assets.newAsset("newSpellMsg",newSpellMsgPic);
+  noManaMsgPic = new Image();
+  noManaMsgPic.src = "./GFX/notEnoughManaMsg.png";
+  noManaMsgPic.addEventListener("load",function(){assets.addAsset()},false)
+  assets.newAsset("noManaMsg",noManaMsgPic);
 }
 
 function updateState(){

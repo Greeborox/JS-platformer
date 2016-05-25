@@ -46,6 +46,8 @@ player.mana = 20;
 player.maxMana = 20;
 player.lastManaTick = 0;
 player.manaRegenTime = 60;
+player.manaRegenActive = false;
+player.energyShards = 0;
 player.width = 24;
 player.height = 54;
 player.x = 30;
@@ -277,7 +279,9 @@ player.update = function(grav){
   this.updateMissiles();
   player.stab.update(player.x,player.y,player.width,player.height,player.direction);
   this.handleKneeling();
-  this.updateMana();
+  if(this.manaRegenActive){
+    this.updateMana();
+  }
 
   if(this.attacks.length === 1) {
     this.currAttack = 0;

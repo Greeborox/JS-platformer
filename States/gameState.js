@@ -13,6 +13,7 @@ var Patroler = require('../Actors/Monsters/patroler');
 var Particle = require('../Actors/particles');
 var levelList = require('../Config/levels');
 var Message = require('../Actors/message');
+var Collectibles = require('../Actors/collectibles');
 
 var initialised = false;
 var changeState = false;
@@ -31,6 +32,8 @@ var shrines = [];
 var particles = [];
 var smokeParts = [];
 var explosions = [];
+var manaBalls = [];
+var energyShards = [];
 var player = undefined;
 var message = undefined;
 var currLevel = undefined;
@@ -48,6 +51,8 @@ function resetGame(){
   ladders = [];
   shrines = [];
   particles = [];
+  manaBalls = [];
+  energyShards = [];
   player.missiles = [];
   player.mana = player.maxMana;
   explosions = [];
@@ -140,6 +145,9 @@ function updateState(){
   for(var i = 0; i<monsters.length;i++){
     monsters[i].update();
     if(monsters[i].remove){
+      if(Math.random() > 0.5){
+        manaBalls.push(Collectibles.newManaBall(monsters[i].x,monsters[i].y-50))
+      }
       monsters.splice(i,1);
     }
     if(helpers.checkCollision(player,monsters[i])){
@@ -290,6 +298,16 @@ function updateState(){
     }
   }
 
+  for(var i = 0; i<manaBalls.length;i++){
+    manaBalls[i].update();
+    if(helpers.checkCollision(player,manaBalls[i])){
+      if(player.mana < player.maxMana){
+        player.mana = Math.min(player.mana+10, player.maxMana);
+        manaBalls.splice(i,1);
+      }
+    }
+  }
+
   for(var i = 0; i<platforms.length;i++){
     if(helpers.checkCollision(player,platforms[i])){
       player.touchingPlatform = true;
@@ -332,6 +350,14 @@ function updateState(){
       if(helpers.checkCollision(monsters[k],lavas[i])){
         monsters.splice(k,1);
       }
+    }
+  }
+
+  for(var i = 0; i<energyShards.length;i++){
+    energyShards[i].update();
+    if(helpers.checkCollision(player,energyShards[i])){
+      player.energyShards++;
+      energyShards.splice(i,1);
     }
   }
   for(var i = 0; i<explosions.length;i++){
@@ -427,6 +453,17 @@ module.exports = {
       currShrine = currLevel.spellShrines[i];
       shrines.push(Shrine.newShrine(currShrine.x,currShrine.y,currShrine.spell));
     }
+
+    for (var i = 0; i < currLevel.manaBalls.length; i++) {
+      manaBall = currLevel.manaBalls[i];
+      manaBalls.push(Collectibles.newManaBall(manaBall.x,manaBall.y));
+    }
+
+    for (var i = 0; i < currLevel.energyShards.length; i++) {
+      shard = currLevel.energyShards[i];
+      energyShards.push(Collectibles.newEnergyShard(shard.x,shard.y));
+    }
+
     exit = {};
     exit.x = currLevel.levelExit.x;
     exit.y = currLevel.levelExit.y;
@@ -439,6 +476,7 @@ module.exports = {
     player.y = currLevel.player.y;
     if(config.getLevel()===1){
       player.resetAttacks();
+      player.energyShards = 0;
     }
     player.missiles = [];
 
@@ -484,14 +522,20 @@ module.exports = {
         c.ctx.fillStyle = lavas[i].color;
         lavas[i].draw(c.ctx);
       }
+      for(var i = 0; i<shrines.length;i++){
+        shrines[i].draw(c.ctx);
+      }
       for(var i = 0; i<monsters.length;i++){
         monsters[i].draw(c.ctx);
       }
       for(var i = 0; i<ladders.length;i++){
         ladders[i].draw(c.ctx);
       }
-      for(var i = 0; i<shrines.length;i++){
-        shrines[i].draw(c.ctx);
+      for(var i = 0; i < manaBalls.length; i++){
+        manaBalls[i].draw(c.ctx);
+      }
+      for(var i = 0; i < energyShards.length; i++){
+        energyShards[i].draw(c.ctx);
       }
       c.ctx.fillStyle = player.color;
       if(player.alive){
@@ -516,6 +560,7 @@ module.exports = {
       for(var i = 0; i < explosions.length; i++){
         explosions[i].draw(c.ctx);
       }
+
       if(message.active){
         message.draw(c.ctx)
       }
@@ -527,6 +572,7 @@ module.exports = {
         c.ctx.fillText("No Spells",3,15);
       }
       c.ctx.fillText("Mana: "+player.mana+"/"+player.maxMana,3,30);
+      c.ctx.fillText("Shards: "+player.energyShards,3,45);
     }
   },
 }

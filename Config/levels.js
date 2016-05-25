@@ -35,7 +35,9 @@ var levels = [
 
     ],
     "monstersPatrolers": [
-
+      {
+        "platformIndex": 1,
+      },
     ],
     "ladders": [
       {
@@ -48,7 +50,39 @@ var levels = [
       {
         "x": 296,
         "y": 210,
-        "spell": "gustOfWind"
+        "spell": "fireBomb"
+      },
+    ],
+    "manaBalls": [
+      {
+        "x": 100,
+        "y": 430,
+      },
+      {
+        "x": 200,
+        "y": 430,
+      },
+      {
+        "x": 300,
+        "y": 430,
+      },
+      {
+        "x": 400,
+        "y": 430,
+      },
+      {
+        "x": 500,
+        "y": 430,
+      },
+    ],
+    "energyShards":[
+      {
+        "x": 220,
+        "y": 285,
+      },
+      {
+        "x": 280,
+        "y": 285,
       },
     ],
     "player": {
@@ -139,6 +173,43 @@ var levels = [
     ],
     "spellShrines": [
 
+    ],
+    "manaBalls": [
+
+    ],
+    "energyShards":[
+      {
+        "x": 220,
+        "y": 350,
+      },
+      {
+        "x": 260,
+        "y": 350,
+      },
+      {
+        "x": 420,
+        "y": 270,
+      },
+      {
+        "x": 460,
+        "y": 270,
+      },
+      {
+        "x": 640,
+        "y": 270,
+      },
+      {
+        "x": 680,
+        "y": 270,
+      },
+      {
+        "x": 850,
+        "y": 270,
+      },
+      {
+        "x": 890,
+        "y": 270,
+      },
     ],
     "player": {
       "x": 10,
@@ -376,6 +447,12 @@ var levels = [
       },
     ],
     "spellShrines": [
+
+    ],
+    "manaBalls": [
+
+    ],
+    "energyShards":[
 
     ],
     "player": {

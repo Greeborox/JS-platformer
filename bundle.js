@@ -30,7 +30,7 @@ module.exports = {
   }
 }
 
-},{"../entity":7}],2:[function(require,module,exports){
+},{"../entity":8}],2:[function(require,module,exports){
 var helpers = require('../../Config/helpers');
 var Entity = require('../entity')
 
@@ -87,7 +87,7 @@ module.exports = {
   }
 }
 
-},{"../../Config/helpers":17,"../entity":7}],3:[function(require,module,exports){
+},{"../../Config/helpers":18,"../entity":8}],3:[function(require,module,exports){
 var Entity = require('../entity')
 
 var gustOfWind = Entity.newEntity();
@@ -122,7 +122,7 @@ module.exports = {
   }
 }
 
-},{"../entity":7}],4:[function(require,module,exports){
+},{"../entity":8}],4:[function(require,module,exports){
 var helpers = require('../../Config/helpers');
 var Entity = require('../entity')
 
@@ -167,7 +167,7 @@ module.exports = {
   }
 }
 
-},{"../../Config/helpers":17,"../entity":7}],5:[function(require,module,exports){
+},{"../../Config/helpers":18,"../entity":8}],5:[function(require,module,exports){
 var Entity = require('../entity')
 
 var monster = Entity.newEntity();
@@ -216,7 +216,7 @@ module.exports = {
   }
 }
 
-},{"../entity":7}],6:[function(require,module,exports){
+},{"../entity":8}],6:[function(require,module,exports){
 var monster = require('./Monster');
 
 var patroler = monster.newMonster(0,0,30,40);
@@ -262,6 +262,44 @@ module.exports = {
 }
 
 },{"./Monster":5}],7:[function(require,module,exports){
+var entity = require('./entity');
+
+collectible = entity.newEntity();
+collectible.active = false;
+collectible.x = 0;
+collectible.y = 0;
+collectible.width = 10;
+collectible.height = 10;
+collectible.color = '#006688';
+collectible.angle = 0;
+
+collectible.update = function(){
+  this.y = this.y + Math.sin(this.angle);
+  this.angle += 0.01;
+  if(this.angle > 0.5){
+    this.angle = -0.5;
+  }
+}
+
+module.exports = {
+  newManaBall: function(x,y) {
+    var newBall = Object.create(collectible);
+    newBall.angle = Math.random() * 0.5;
+    newBall.x = x;
+    newBall.y = y;
+    return newBall;
+  },
+  newEnergyShard: function(x,y) {
+    var newShard = Object.create(collectible);
+    newShard.angle = Math.random() * 0.5;
+    newShard.x = x;
+    newShard.y = y;
+    newShard.color = '#D9BC18';
+    return newShard;
+  }
+}
+
+},{"./entity":8}],8:[function(require,module,exports){
 entity = {
   sourceX: 0,
   sourceY: 0,
@@ -292,7 +330,7 @@ module.exports = {
   }
 }
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 var entity = require('./entity');
 var c = require('../Config/canvas');
 var assets = require('../Config/assets');
@@ -317,7 +355,7 @@ module.exports = {
   },
 }
 
-},{"../Config/assets":14,"../Config/canvas":15,"./entity":7}],9:[function(require,module,exports){
+},{"../Config/assets":15,"../Config/canvas":16,"./entity":8}],10:[function(require,module,exports){
 var entity = require('./entity');
 var assets = require('../Config/assets');
 
@@ -357,7 +395,7 @@ module.exports = {
   }
 }
 
-},{"../Config/assets":14,"./entity":7}],10:[function(require,module,exports){
+},{"../Config/assets":15,"./entity":8}],11:[function(require,module,exports){
 var Entity = require('./entity');
 
 particle = Entity.newEntity();
@@ -438,7 +476,7 @@ module.exports = {
   }
 }
 
-},{"./entity":7}],11:[function(require,module,exports){
+},{"./entity":8}],12:[function(require,module,exports){
 var entity = require('./entity');
 var c = require('../Config/canvas');
 
@@ -581,7 +619,7 @@ module.exports = {
   }
 }
 
-},{"../Config/canvas":15,"./entity":7}],12:[function(require,module,exports){
+},{"../Config/canvas":16,"./entity":8}],13:[function(require,module,exports){
 var entity = require('./entity');
 var keys = require('../Config/keys');
 var c = require('../Config/canvas');
@@ -630,6 +668,8 @@ player.mana = 20;
 player.maxMana = 20;
 player.lastManaTick = 0;
 player.manaRegenTime = 60;
+player.manaRegenActive = false;
+player.energyShards = 0;
 player.width = 24;
 player.height = 54;
 player.x = 30;
@@ -861,7 +901,9 @@ player.update = function(grav){
   this.updateMissiles();
   player.stab.update(player.x,player.y,player.width,player.height,player.direction);
   this.handleKneeling();
-  this.updateMana();
+  if(this.manaRegenActive){
+    this.updateMana();
+  }
 
   if(this.attacks.length === 1) {
     this.currAttack = 0;
@@ -909,7 +951,7 @@ module.exports = {
   }
 }
 
-},{"../Config/assets":14,"../Config/canvas":15,"../Config/helpers":17,"../Config/keys":18,"../Config/mouse":20,"./Attacks/fireBomb":2,"./Attacks/gustOfWind":3,"./Attacks/magicMissile":4,"./entity":7,"./message":9}],13:[function(require,module,exports){
+},{"../Config/assets":15,"../Config/canvas":16,"../Config/helpers":18,"../Config/keys":19,"../Config/mouse":21,"./Attacks/fireBomb":2,"./Attacks/gustOfWind":3,"./Attacks/magicMissile":4,"./entity":8,"./message":10}],14:[function(require,module,exports){
 var entity = require('./entity');
 
 shrine = entity.newEntity();
@@ -928,7 +970,7 @@ module.exports = {
   },
 }
 
-},{"./entity":7}],14:[function(require,module,exports){
+},{"./entity":8}],15:[function(require,module,exports){
 var assets = [];
 var assetsNum = 0;
 
@@ -955,7 +997,7 @@ module.exports = {
   }
 }
 
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 var canvas = document.getElementById('canvas');
 
 module.exports = {
@@ -965,7 +1007,7 @@ module.exports = {
     height: canvas.height,
 };
 
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 fps = 60;
 gravity = 5;
 currLevel = 1;
@@ -988,7 +1030,7 @@ module.exports = {
   }
 }
 
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 module.exports = {
   blockRect: function(r1,r2){
     if(r1&&r2){
@@ -1087,7 +1129,7 @@ module.exports = {
   },
 }
 
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 var pressedKeys = {};
 var keys = {
   SPACE: 32,
@@ -1123,7 +1165,7 @@ module.exports = {
   }
 }
 
-},{}],19:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 var levels = [
   //////////////////////// LEVEL 1 ///////////////////////////
   {
@@ -1161,7 +1203,9 @@ var levels = [
 
     ],
     "monstersPatrolers": [
-
+      {
+        "platformIndex": 1,
+      },
     ],
     "ladders": [
       {
@@ -1174,7 +1218,39 @@ var levels = [
       {
         "x": 296,
         "y": 210,
-        "spell": "gustOfWind"
+        "spell": "fireBomb"
+      },
+    ],
+    "manaBalls": [
+      {
+        "x": 100,
+        "y": 430,
+      },
+      {
+        "x": 200,
+        "y": 430,
+      },
+      {
+        "x": 300,
+        "y": 430,
+      },
+      {
+        "x": 400,
+        "y": 430,
+      },
+      {
+        "x": 500,
+        "y": 430,
+      },
+    ],
+    "energyShards":[
+      {
+        "x": 220,
+        "y": 285,
+      },
+      {
+        "x": 280,
+        "y": 285,
       },
     ],
     "player": {
@@ -1265,6 +1341,43 @@ var levels = [
     ],
     "spellShrines": [
 
+    ],
+    "manaBalls": [
+
+    ],
+    "energyShards":[
+      {
+        "x": 220,
+        "y": 350,
+      },
+      {
+        "x": 260,
+        "y": 350,
+      },
+      {
+        "x": 420,
+        "y": 270,
+      },
+      {
+        "x": 460,
+        "y": 270,
+      },
+      {
+        "x": 640,
+        "y": 270,
+      },
+      {
+        "x": 680,
+        "y": 270,
+      },
+      {
+        "x": 850,
+        "y": 270,
+      },
+      {
+        "x": 890,
+        "y": 270,
+      },
     ],
     "player": {
       "x": 10,
@@ -1504,6 +1617,12 @@ var levels = [
     "spellShrines": [
 
     ],
+    "manaBalls": [
+
+    ],
+    "energyShards":[
+
+    ],
     "player": {
       "x": 30,
       "y": 2926,
@@ -1524,7 +1643,7 @@ module.exports = {
   },
 }
 
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 c = require('./canvas');
 Screen = require('./screen')
 
@@ -1579,7 +1698,7 @@ module.exports = {
   }
 }
 
-},{"./canvas":15,"./screen":21}],21:[function(require,module,exports){
+},{"./canvas":16,"./screen":22}],22:[function(require,module,exports){
 var c = require('./canvas');
 
 var screen = {
@@ -1677,7 +1796,7 @@ module.exports = {
   }
 }
 
-},{"./canvas":15}],22:[function(require,module,exports){
+},{"./canvas":16}],23:[function(require,module,exports){
 var c = require('../Config/canvas');
 var config = require('../Config/config');
 var mouse = require('../Config/mouse');
@@ -1778,7 +1897,7 @@ module.exports = {
   },
 }
 
-},{"../Config/canvas":15,"../Config/config":16,"../Config/helpers":17,"../Config/mouse":20}],23:[function(require,module,exports){
+},{"../Config/canvas":16,"../Config/config":17,"../Config/helpers":18,"../Config/mouse":21}],24:[function(require,module,exports){
 var c = require('../Config/canvas');
 var keys = require('../Config/keys');
 var m = require('../Config/mouse');
@@ -1794,6 +1913,7 @@ var Patroler = require('../Actors/Monsters/patroler');
 var Particle = require('../Actors/particles');
 var levelList = require('../Config/levels');
 var Message = require('../Actors/message');
+var Collectibles = require('../Actors/collectibles');
 
 var initialised = false;
 var changeState = false;
@@ -1812,6 +1932,8 @@ var shrines = [];
 var particles = [];
 var smokeParts = [];
 var explosions = [];
+var manaBalls = [];
+var energyShards = [];
 var player = undefined;
 var message = undefined;
 var currLevel = undefined;
@@ -1829,6 +1951,8 @@ function resetGame(){
   ladders = [];
   shrines = [];
   particles = [];
+  manaBalls = [];
+  energyShards = [];
   player.missiles = [];
   player.mana = player.maxMana;
   explosions = [];
@@ -1921,6 +2045,9 @@ function updateState(){
   for(var i = 0; i<monsters.length;i++){
     monsters[i].update();
     if(monsters[i].remove){
+      if(Math.random() > 0.5){
+        manaBalls.push(Collectibles.newManaBall(monsters[i].x,monsters[i].y-50))
+      }
       monsters.splice(i,1);
     }
     if(helpers.checkCollision(player,monsters[i])){
@@ -2071,6 +2198,16 @@ function updateState(){
     }
   }
 
+  for(var i = 0; i<manaBalls.length;i++){
+    manaBalls[i].update();
+    if(helpers.checkCollision(player,manaBalls[i])){
+      if(player.mana < player.maxMana){
+        player.mana = Math.min(player.mana+10, player.maxMana);
+        manaBalls.splice(i,1);
+      }
+    }
+  }
+
   for(var i = 0; i<platforms.length;i++){
     if(helpers.checkCollision(player,platforms[i])){
       player.touchingPlatform = true;
@@ -2113,6 +2250,14 @@ function updateState(){
       if(helpers.checkCollision(monsters[k],lavas[i])){
         monsters.splice(k,1);
       }
+    }
+  }
+
+  for(var i = 0; i<energyShards.length;i++){
+    energyShards[i].update();
+    if(helpers.checkCollision(player,energyShards[i])){
+      player.energyShards++;
+      energyShards.splice(i,1);
     }
   }
   for(var i = 0; i<explosions.length;i++){
@@ -2208,6 +2353,17 @@ module.exports = {
       currShrine = currLevel.spellShrines[i];
       shrines.push(Shrine.newShrine(currShrine.x,currShrine.y,currShrine.spell));
     }
+
+    for (var i = 0; i < currLevel.manaBalls.length; i++) {
+      manaBall = currLevel.manaBalls[i];
+      manaBalls.push(Collectibles.newManaBall(manaBall.x,manaBall.y));
+    }
+
+    for (var i = 0; i < currLevel.energyShards.length; i++) {
+      shard = currLevel.energyShards[i];
+      energyShards.push(Collectibles.newEnergyShard(shard.x,shard.y));
+    }
+
     exit = {};
     exit.x = currLevel.levelExit.x;
     exit.y = currLevel.levelExit.y;
@@ -2220,6 +2376,7 @@ module.exports = {
     player.y = currLevel.player.y;
     if(config.getLevel()===1){
       player.resetAttacks();
+      player.energyShards = 0;
     }
     player.missiles = [];
 
@@ -2265,14 +2422,20 @@ module.exports = {
         c.ctx.fillStyle = lavas[i].color;
         lavas[i].draw(c.ctx);
       }
+      for(var i = 0; i<shrines.length;i++){
+        shrines[i].draw(c.ctx);
+      }
       for(var i = 0; i<monsters.length;i++){
         monsters[i].draw(c.ctx);
       }
       for(var i = 0; i<ladders.length;i++){
         ladders[i].draw(c.ctx);
       }
-      for(var i = 0; i<shrines.length;i++){
-        shrines[i].draw(c.ctx);
+      for(var i = 0; i < manaBalls.length; i++){
+        manaBalls[i].draw(c.ctx);
+      }
+      for(var i = 0; i < energyShards.length; i++){
+        energyShards[i].draw(c.ctx);
       }
       c.ctx.fillStyle = player.color;
       if(player.alive){
@@ -2297,6 +2460,7 @@ module.exports = {
       for(var i = 0; i < explosions.length; i++){
         explosions[i].draw(c.ctx);
       }
+
       if(message.active){
         message.draw(c.ctx)
       }
@@ -2308,11 +2472,12 @@ module.exports = {
         c.ctx.fillText("No Spells",3,15);
       }
       c.ctx.fillText("Mana: "+player.mana+"/"+player.maxMana,3,30);
+      c.ctx.fillText("Shards: "+player.energyShards,3,45);
     }
   },
 }
 
-},{"../Actors/Attacks/explosion":1,"../Actors/Monsters/patroler":6,"../Actors/ladder":8,"../Actors/message":9,"../Actors/particles":10,"../Actors/platform":11,"../Actors/player":12,"../Actors/spellShrine":13,"../Config/canvas":15,"../Config/config":16,"../Config/helpers":17,"../Config/keys":18,"../Config/levels":19,"../Config/mouse":20,"../Config/screen":21}],24:[function(require,module,exports){
+},{"../Actors/Attacks/explosion":1,"../Actors/Monsters/patroler":6,"../Actors/collectibles":7,"../Actors/ladder":9,"../Actors/message":10,"../Actors/particles":11,"../Actors/platform":12,"../Actors/player":13,"../Actors/spellShrine":14,"../Config/canvas":16,"../Config/config":17,"../Config/helpers":18,"../Config/keys":19,"../Config/levels":20,"../Config/mouse":21,"../Config/screen":22}],25:[function(require,module,exports){
 var assets = require('../Config/assets');
 var c = require('../Config/canvas');
 
@@ -2394,7 +2559,7 @@ module.exports = {
   },
 }
 
-},{"../Config/assets":14,"../Config/canvas":15}],25:[function(require,module,exports){
+},{"../Config/assets":15,"../Config/canvas":16}],26:[function(require,module,exports){
 var c = require('../Config/canvas');
 var keys = require('../Config/keys');
 var config = require('../Config/config');
@@ -2471,7 +2636,7 @@ module.exports = {
   },
 }
 
-},{"../Config/canvas":15,"../Config/config":16,"../Config/helpers":17,"../Config/keys":18,"../Config/mouse":20}],26:[function(require,module,exports){
+},{"../Config/canvas":16,"../Config/config":17,"../Config/helpers":18,"../Config/keys":19,"../Config/mouse":21}],27:[function(require,module,exports){
 var c = require('./Config/canvas');
 var keys = require('./Config/keys');
 var m = require('./Config/mouse');
@@ -2515,9 +2680,9 @@ module.exports = {
   }
 }
 
-},{"./Config/canvas":15,"./Config/keys":18,"./Config/mouse":20,"./States/announceState":22,"./States/gameState":23,"./States/loadingState":24,"./States/menuState":25}],27:[function(require,module,exports){
+},{"./Config/canvas":16,"./Config/keys":19,"./Config/mouse":21,"./States/announceState":23,"./States/gameState":24,"./States/loadingState":25,"./States/menuState":26}],28:[function(require,module,exports){
 var game = require('./game');
 
 game.init();
 
-},{"./game":26}]},{},[27]);
+},{"./game":27}]},{},[28]);
